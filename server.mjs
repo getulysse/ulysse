@@ -1,6 +1,5 @@
 import http from 'http';
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import { jwtVerify } from 'jose';
 import { Server } from 'socket.io';
 
@@ -24,7 +23,11 @@ const isAuthenticated = async (token, secret) => {
     }
 };
 
-app.get('/', async (req, res) => {
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
+
+app.get('/unblock', async (req, res) => {
     const token = req.params.token || req.headers['x-access-token'] || req.query.token;
     const isAuthenticatedUser = await isAuthenticated(token, process.env.JWT_SECRET);
 
@@ -35,12 +38,7 @@ app.get('/', async (req, res) => {
 
     io.emit('unblock');
 
-    res.send('Unblocked');
-});
-
-app.post('/login', async (req, res) => {
-    const token = jwt.sign({}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_TOKEN_TTL });
-    res.json({ token });
+    res.redirect('/');
 });
 
 io.on('connection', (socket) => {
