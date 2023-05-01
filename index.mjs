@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 import { io } from 'socket.io-client';
-import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, checkDaemon, config } from './utils.mjs'; // eslint-disable-line
+import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, checkDaemon, config } from './utils.mjs';
 
 const params = process.argv.slice(2);
 
 if (params.includes('--server')) {
     console.log('Starting server...');
-    await import('./server.mjs'); // eslint-disable-line
+    await import('./server.mjs');
 }
 
 if (process.getuid() !== 0 && !params.includes('--server')) {
-    console.error('Please run this script as root or using sudo'); // eslint-disable-line
+    console.error('Please run this script as root or using sudo');
     process.exit(1);
 }
 
@@ -51,5 +51,5 @@ if (params.includes('--daemonize')) {
 }
 
 if (params.length === 0) {
-    console.log('Usage: sudo node index.mjs --block|--unblock|--daemonize|--server'); // eslint-disable-line
+    console.log('Usage: sudo node index.mjs --block|--unblock|--daemonize|--server');
 }

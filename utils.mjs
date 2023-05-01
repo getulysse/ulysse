@@ -62,7 +62,7 @@ export const checkDaemon = async () => {
     const { stdout } = await execAsync('pgrep -f "ulysse.*daemonize|daemonize.*ulysse"').catch(() => false);
 
     if (!stdout) {
-        console.error('Daemon is not running'); // eslint-disable-line
+        console.error('Daemon is not running');
         process.exit(1);
     }
 };

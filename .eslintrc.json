@@ -19,6 +19,8 @@
         "import/prefer-default-export": [0],
         "no-restricted-syntax": [0],
         "complexity": [2, 6],
-        "max-depth": [2, 2]
+        "max-depth": [2, 2],
+        "import/extensions": [0],
+        "no-console": [0]
     }
 }
