@@ -41,4 +41,7 @@ io.on('connection', (socket) => {
 
 server.listen(port, () => {
     console.log(`Listening on port ${port}`);
+}).on('error', ({ message }) => {
+    console.error(message);
+    process.exit(1);
 });

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { io } from 'socket.io-client';
 import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, checkDaemon } from './utils.mjs'; // eslint-disable-line
 
@@ -5,7 +7,12 @@ const SERVER = process.env.SERVER || 'http://localhost:3000';
 
 const params = process.argv.slice(2);
 
-if (process.getuid() !== 0) {
+if (params.includes('--server')) {
+    console.log('Starting server...');
+    await import('./server.mjs'); // eslint-disable-line
+}
+
+if (process.getuid() !== 0 && !params.includes('--server')) {
     console.error('Please run this script as root or using sudo'); // eslint-disable-line
     process.exit(1);
 }
@@ -28,6 +35,8 @@ if (params.includes('--unblock')) {
 }
 
 if (params.includes('--daemonize')) {
+    console.log('Daemonizing...');
+
     const socket = io(SERVER);
 
     socket.on('connect', () => {
@@ -42,4 +51,6 @@ if (params.includes('--daemonize')) {
     });
 }
 
-console.log('Usage: sudo node index.mjs --block|--unblock|--daemonize'); // eslint-disable-line
+if (params.length === 0) {
+    console.log('Usage: sudo node index.mjs --block|--unblock|--daemonize|--server'); // eslint-disable-line
+}
