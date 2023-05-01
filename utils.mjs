@@ -1,8 +1,21 @@
 import fs from 'fs';
 import os from 'os';
+import { jwtVerify } from 'jose';
 import { exec } from 'child_process';
 
 export const config = JSON.parse(await fs.readFileSync(`${os.homedir()}/.config/ulysse/config.json`, 'utf8'));
+
+export const isAuthenticated = async (token, secret) => {
+    try {
+        if (token) {
+            return await jwtVerify(token, new TextEncoder().encode(secret));
+        }
+
+        return false;
+    } catch (err) {
+        return false;
+    }
+};
 
 export const blockHosts = async () => {
     const { hosts } = config;
