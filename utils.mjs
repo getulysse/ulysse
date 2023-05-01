@@ -3,7 +3,10 @@ import uti from 'util';
 import os from 'os';
 import { exec } from 'child_process';
 
-export const config = JSON.parse(await fs.readFileSync(`${os.homedir()}/.config/ulysse/config.json`, 'utf8'));
+const params = process.argv.slice(2);
+
+const configPath = params.includes('--config') ? params[params.indexOf('--config') + 1] : `${os.homedir()}/.config/ulysse/config.json`;
+export const config = JSON.parse(await fs.readFileSync(configPath, 'utf8'));
 
 export const blockHosts = async () => {
     const { hosts } = config;
