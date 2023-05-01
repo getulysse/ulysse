@@ -1,4 +1,5 @@
 import fs from 'fs';
+import uti from 'util';
 import os from 'os';
 import { jwtVerify } from 'jose';
 import { exec } from 'child_process';
@@ -64,4 +65,14 @@ export const unBlockRoot = async () => {
     await exec('chmod +x /usr/bin/su');
     await exec('chmod +x /usr/bin/sudoedit');
     await exec('chmod +x /usr/bin/suexec');
+};
+
+export const checkDaemon = async () => {
+    const execAsync = uti.promisify(exec);
+    const { stdout } = await execAsync('pgrep -f "index.mjs --daemonize"').catch(() => false);
+
+    if (!stdout) {
+        console.error('Daemon is not running'); // eslint-disable-line
+        process.exit(1);
+    }
 };
