@@ -59,7 +59,7 @@ export const unBlockRoot = async () => {
 
 export const checkDaemon = async () => {
     const execAsync = uti.promisify(exec);
-    const { stdout } = await execAsync('pgrep -f "ulysse.*daemonize"').catch(() => false);
+    const { stdout } = await execAsync('pgrep -f "ulysse.*daemonize|daemonize.*ulysse"').catch(() => false);
 
     if (!stdout) {
         console.error('Daemon is not running'); // eslint-disable-line
