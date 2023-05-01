@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
 import { io } from 'socket.io-client';
-import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, checkDaemon } from './utils.mjs'; // eslint-disable-line
-
-const SERVER = process.env.SERVER || 'http://localhost:3000';
+import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, checkDaemon, config } from './utils.mjs'; // eslint-disable-line
 
 const params = process.argv.slice(2);
 
@@ -36,8 +34,9 @@ if (params.includes('--unblock')) {
 
 if (params.includes('--daemonize')) {
     console.log('Daemonizing...');
+    const { server } = config;
 
-    const socket = io(SERVER);
+    const socket = io(server);
 
     socket.on('connect', () => {
         console.log('Connected to the server');
