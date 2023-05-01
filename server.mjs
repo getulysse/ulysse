@@ -1,8 +1,8 @@
 import http from 'http';
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 import { Server } from 'socket.io';
-import { unBlockRoot, unBlockApps, unBlockHosts, isAuthenticated, config } from './utils.mjs'; // eslint-disable-line
 
 const app = express();
 const server = http.createServer(app);
@@ -11,6 +11,18 @@ const port = 3000;
 
 process.env.JWT_SECRET = 'mys3cr3t';
 process.env.JWT_TOKEN_TTL = '30d';
+
+const isAuthenticated = async (token, secret) => {
+    try {
+        if (token) {
+            return await jwtVerify(token, new TextEncoder().encode(secret));
+        }
+
+        return false;
+    } catch (err) {
+        return false;
+    }
+};
 
 app.get('/', async (req, res) => {
     const token = req.params.token || req.headers['x-access-token'] || req.query.token;
