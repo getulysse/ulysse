@@ -6,7 +6,7 @@ Description=Ulysse
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/node /home/johackim/Dev/ulysse/index.mjs --daemonize
+ExecStart=/usr/bin/node index.mjs --daemonize --config /home/johackim/.config/ulysse/config.json
 Restart=always
 User=root
 Group=root
