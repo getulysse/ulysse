@@ -4,42 +4,36 @@ import { io } from 'socket.io-client';
 import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, checkDaemon, config } from './utils.mjs';
 
 const params = process.argv.slice(2);
+const { server } = config;
 
 if (params.includes('--server')) {
     console.log('Starting server...');
     await import('./server.mjs');
 }
 
-if (process.getuid() !== 0 && !params.includes('--server')) {
-    console.error('Please run this script as root or using sudo');
-    process.exit(1);
-}
-
 if (params.includes('--block')) {
     console.log('Blocking...');
-    await checkDaemon();
-    await blockRoot();
-    await blockApps();
-    await blockHosts();
-    process.exit(0);
-}
-
-if (params.includes('--unblock')) {
-    console.log('Unblocking...');
-    await unBlockRoot();
-    await unBlockApps();
-    await unBlockHosts();
-    process.exit(0);
+    const socket = io(server);
+    socket.emit('block', {}, {}, () => {
+        process.exit(0);
+    });
 }
 
 if (params.includes('--daemonize')) {
     console.log('Daemonizing...');
-    const { server } = config;
 
     const socket = io(server);
 
     socket.on('connect', () => {
         console.log('Connected to the server');
+    });
+
+    socket.on('block', async () => {
+        console.log('Blocking...');
+        await checkDaemon();
+        await blockRoot();
+        await blockApps();
+        await blockHosts();
     });
 
     socket.on('unblock', async () => {

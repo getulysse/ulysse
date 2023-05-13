@@ -16,5 +16,11 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.2",
     "prettier": "^2.8.8"
+  },
+  "scripts": {
+    "docker:build": "docker build --no-cache -t registry.ethibox.fr/ulysse .",
+    "docker:push": "docker push registry.ethibox.fr/ulysse",
+    "deploy": "npm run docker:build && npm run docker:push",
+    "postdeploy": "curl -X POST https://portainer.ethibox.fr/api/webhooks/c3b177fd-5019-4db1-8633-16a2db6e30aa"
   }
 }
