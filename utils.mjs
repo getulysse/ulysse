@@ -13,7 +13,7 @@ export const config = JSON.parse(await fs.readFileSync(configPath, 'utf8'));
 export const blockHosts = async () => {
     const { hosts } = config;
 
-    fs.writeFileSync('/etc/hosts', hosts.map((host) => `127.0.0.1 ${host}`).join('\n'), 'utf8');
+    fs.writeFileSync('hosts.txt', hosts.map((host) => `127.0.0.1 ${host} www.${host}`).join('\n'), 'utf8');
 };
 
 export const unBlockHosts = async () => {
