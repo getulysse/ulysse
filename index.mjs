@@ -19,7 +19,7 @@ if (params.includes('--block')) {
     });
 }
 
-if (params.includes('--daemonize')) {
+if (params.includes('--daemon')) {
     console.log('Daemonizing...');
 
     const socket = io(server);
@@ -45,5 +45,5 @@ if (params.includes('--daemonize')) {
 }
 
 if (params.length === 0) {
-    console.log('Usage: sudo node index.mjs --block|--daemonize|--server');
+    console.log('Usage: sudo node index.mjs --block|--daemon|--server');
 }
