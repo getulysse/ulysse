@@ -45,5 +45,5 @@ if (params.includes('--daemonize')) {
 }
 
 if (params.length === 0) {
-    console.log('Usage: sudo node index.mjs --block|--unblock|--daemonize|--server');
+    console.log('Usage: sudo node index.mjs --block|--daemonize|--server');
 }
