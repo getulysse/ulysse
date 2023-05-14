@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { io } from 'socket.io-client';
-import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, clearBrowser, checkDaemon, config } from './utils.mjs';
+import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, clearBrowser, checkDaemon, sleep, config } from './utils.mjs';
 import { createTask, stopCurrentTask } from './toggl.mjs';
 
 const params = process.argv.slice(2);
@@ -44,8 +44,9 @@ if (params.includes('--daemon')) {
         await unBlockRoot();
         await unBlockApps();
         await unBlockHosts();
-        await stopCurrentTask();
         await clearBrowser();
+        await sleep(5000);
+        await stopCurrentTask();
     });
 }
 
