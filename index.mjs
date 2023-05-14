@@ -26,6 +26,7 @@ if (params.includes('--daemon')) {
     console.log('Daemonizing...');
 
     const socket = io(server);
+    const { blocklist, apps } = config;
 
     socket.on('connect', () => {
         console.log('Connected to the server');
@@ -35,14 +36,14 @@ if (params.includes('--daemon')) {
         console.log('Blocking...');
         await checkDaemon();
         await blockRoot();
-        await blockApps();
-        await blockHosts();
+        await blockApps(apps);
+        await blockHosts(blocklist);
     });
 
     socket.on('unblock', async () => {
         console.log('Unblocking...');
         await unBlockRoot();
-        await unBlockApps();
+        await unBlockApps(apps);
         await unBlockHosts();
         await clearBrowser();
         await sleep(5000);

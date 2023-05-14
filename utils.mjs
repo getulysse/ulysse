@@ -1,37 +1,40 @@
 import fs from 'fs';
-import uti from 'util';
 import os from 'os';
+import uti from 'util';
 import { exec } from 'child_process';
 
 const DEFAULT_CONFIG_PATH = `${os.homedir()}/.config/ulysse/config.json`;
+const DNSMASQ_CONFIG_PATH = process.env.DNSMASQ_CONFIG_PATH || '/etc/dnsmasq.conf';
+const HOSTS_CONFIG_PATH = process.env.HOSTS_CONFIG_PATH || '/etc/hosts';
 
 const params = process.argv.slice(2);
-
 const configPath = params.includes('--config') ? params[params.indexOf('--config') + 1] : DEFAULT_CONFIG_PATH;
+
 export const config = JSON.parse(await fs.readFileSync(configPath, 'utf8'));
 
-export const blockHosts = async () => {
-    const { whitelist } = config;
-
+export const blockAllHosts = async (whitelist) => {
     const lines = [
         'domain-needed',
         'bogus-priv',
         'no-resolv',
         'server=9.9.9.9',
         'server=/toggl.com/#',
-        'server=/api.track.toggl.com/#',
         'address=/#/0.0.0.0',
         'address=/#/::',
         '',
     ].join('\n');
 
-    fs.writeFileSync('/etc/dnsmasq.conf', lines, 'utf8');
-    fs.appendFileSync('/etc/dnsmasq.conf', whitelist.map((host) => `server=/${host}/#`).join('\n'), 'utf8');
+    fs.writeFileSync(DNSMASQ_CONFIG_PATH, lines, 'utf8');
+    fs.appendFileSync(DNSMASQ_CONFIG_PATH, whitelist.map((host) => `server=/${host}/#`).join('\n'), 'utf8');
 
     await exec('systemctl restart dnsmasq');
 };
 
-export const unBlockHosts = async () => {
+export const blockHosts = async (blocklist) => {
+    fs.writeFileSync(HOSTS_CONFIG_PATH, blocklist.map((host) => `127.0.0.1 ${host} www.${host}`).join('\n'), 'utf8');
+};
+
+export const unBlockAllHosts = async () => {
     const lines = [
         'domain-needed',
         'bogus-priv',
@@ -39,23 +42,36 @@ export const unBlockHosts = async () => {
         'server=9.9.9.9',
     ].join('\n');
 
-    fs.writeFileSync('/etc/dnsmasq.conf', lines, 'utf8');
+    fs.writeFileSync(DNSMASQ_CONFIG_PATH, lines, 'utf8');
 
     await exec('systemctl restart dnsmasq');
 };
 
-export const blockApps = async () => {
-    const { apps } = config;
+export const unBlockHosts = async () => {
+    const lines = [
+        '# Static table lookup for hostnames.',
+        '# See hosts(5) for details.',
+        '',
+        '127.0.0.1 localhost',
+        '::1 localhost ip6-localhost ip6-loopback',
+    ].join('\n');
 
+    fs.writeFileSync(HOSTS_CONFIG_PATH, lines, 'utf8');
+};
+
+export const unBlockDns = async () => {
+    await unBlockAllHosts();
+    await unBlockHosts();
+};
+
+export const blockApps = async (apps) => {
     for await (const app of apps) {
         await exec(`chmod -x /usr/bin/${app}`);
         await exec(`pkill -f -9 ${app}`);
     }
 };
 
-export const unBlockApps = async () => {
-    const { apps } = config;
-
+export const unBlockApps = async (apps) => {
     for await (const app of apps) {
         await exec(`chmod +x /usr/bin/${app}`);
     }
