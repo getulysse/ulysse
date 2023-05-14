@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { io } from 'socket.io-client';
-import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, checkDaemon, config } from './utils.mjs';
-import toggl from './toggl.mjs';
+import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, clearBrowser, checkDaemon, config } from './utils.mjs';
+import { createTask, stopCurrentTask } from './toggl.mjs';
 
 const params = process.argv.slice(2);
 const { server } = config;
@@ -16,7 +16,8 @@ if (params.includes('--block')) {
     console.log('Blocking...');
     const socket = io(server);
     socket.emit('block', {}, {}, async () => {
-        await toggl.createTask();
+        await createTask();
+        await clearBrowser();
         process.exit(0);
     });
 }
@@ -43,8 +44,8 @@ if (params.includes('--daemon')) {
         await unBlockRoot();
         await unBlockApps();
         await unBlockHosts();
-        const currentTask = await toggl.getCurrentTask();
-        await toggl.stopTask(currentTask.id);
+        await stopCurrentTask();
+        await clearBrowser();
     });
 }
 

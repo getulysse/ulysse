@@ -11,21 +11,37 @@ const configPath = params.includes('--config') ? params[params.indexOf('--config
 export const config = JSON.parse(await fs.readFileSync(configPath, 'utf8'));
 
 export const blockHosts = async () => {
-    const { blocklist } = config;
+    const { whitelist } = config;
 
-    fs.writeFileSync('/etc/hosts', blocklist.map((host) => `127.0.0.1 ${host} www.${host}`).join('\n'), 'utf8');
+    const lines = [
+        'domain-needed',
+        'bogus-priv',
+        'no-resolv',
+        'server=9.9.9.9',
+        'server=/toggl.com/#',
+        'server=/api.track.toggl.com/#',
+        'address=/#/0.0.0.0',
+        'address=/#/::',
+        '',
+    ].join('\n');
+
+    fs.writeFileSync('/etc/dnsmasq.conf', lines, 'utf8');
+    fs.appendFileSync('/etc/dnsmasq.conf', whitelist.map((host) => `server=/${host}/#`).join('\n'), 'utf8');
+
+    await exec('systemctl restart dnsmasq');
 };
 
 export const unBlockHosts = async () => {
     const lines = [
-        '# Static table lookup for hostnames.',
-        '# See hosts(5) for details.',
-        '',
-        '127.0.0.1 localhost',
-        '::1 localhost ip6-localhost ip6-loopback',
+        'domain-needed',
+        'bogus-priv',
+        'no-resolv',
+        'server=9.9.9.9',
     ].join('\n');
 
-    fs.writeFileSync('/etc/hosts', lines, 'utf8');
+    fs.writeFileSync('/etc/dnsmasq.conf', lines, 'utf8');
+
+    await exec('systemctl restart dnsmasq');
 };
 
 export const blockApps = async () => {
@@ -57,6 +73,14 @@ export const unBlockRoot = async () => {
     await exec('chmod +x /usr/bin/su');
     await exec('chmod +x /usr/bin/sudoedit');
     await exec('chmod +x /usr/bin/suexec');
+};
+
+export const clearBrowser = async () => {
+    await exec('pkill -TERM chromium');
+    await exec('rm -rf ~/.config/chromium/Default/History');
+    await exec('rm -rf ~/.config/chromium/Default/Local Storage');
+    await exec('rm -rf ~/.cache/chromium');
+    await exec('chromium');
 };
 
 export const checkDaemon = async () => {

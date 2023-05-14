@@ -6,7 +6,16 @@ const DEFAULT_DESCRIPTION = 'Deep work session';
 
 const toggl = new Toggl({ auth: { token: config.toggl.token } });
 
-const createTask = async () => {
+export const getCurrentTask = async () => {
+    try {
+        const current = await toggl.timeEntry.current();
+        return current || {};
+    } catch (err) {
+        return {};
+    }
+};
+
+export const createTask = async () => {
     const data = {
         start: new Date(),
         duration: -Math.floor(Date.now() / 1000),
@@ -19,13 +28,7 @@ const createTask = async () => {
     return res;
 };
 
-const stopTask = async (timeEntryId) => {
-    await toggl.timeEntry.update(timeEntryId, config.toggl.workspaceId, { stop: new Date() });
+export const stopCurrentTask = async () => {
+    const currentTask = await getCurrentTask();
+    await toggl.timeEntry.update(currentTask.id, config.toggl.workspaceId, { stop: new Date() });
 };
-
-const getCurrentTask = async () => {
-    const current = await toggl.timeEntry.current();
-    return current || {};
-};
-
-export default { createTask, stopTask, getCurrentTask };
