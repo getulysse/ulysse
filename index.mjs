@@ -1,7 +1,20 @@
 #!/usr/bin/env node
 
 import { io } from 'socket.io-client';
-import { blockRoot, blockApps, blockHosts, unBlockRoot, unBlockApps, unBlockHosts, clearBrowser, checkDaemon, sleep, config } from './utils.mjs';
+import {
+    blockRoot,
+    blockApps,
+    blockHosts,
+    blockAllHosts,
+    unBlockAllHosts,
+    unBlockRoot,
+    unBlockApps,
+    unBlockHosts,
+    clearBrowser,
+    checkDaemon,
+    sleep,
+    config,
+} from './utils.mjs';
 import { createTask, stopCurrentTask } from './toggl.mjs';
 
 const params = process.argv.slice(2);
@@ -15,7 +28,7 @@ if (params.includes('--server')) {
 if (params.includes('--block')) {
     console.log('Blocking...');
     const socket = io(server);
-    socket.emit('block', {}, {}, async () => {
+    socket.emit('block', { params }, {}, async () => {
         await createTask();
         await clearBrowser();
         process.exit(0);
@@ -26,18 +39,22 @@ if (params.includes('--daemon')) {
     console.log('Daemonizing...');
 
     const socket = io(server);
-    const { blocklist, apps } = config;
+    const { blocklist, whitelist, apps } = config;
 
     socket.on('connect', () => {
         console.log('Connected to the server');
     });
 
-    socket.on('block', async () => {
+    socket.on('block', async (parameters) => {
         console.log('Blocking...');
         await checkDaemon();
         await blockRoot();
         await blockApps(apps);
         await blockHosts(blocklist);
+
+        if (parameters.includes('--all')) {
+            await blockAllHosts(whitelist);
+        }
     });
 
     socket.on('unblock', async () => {
@@ -45,6 +62,7 @@ if (params.includes('--daemon')) {
         await unBlockRoot();
         await unBlockApps(apps);
         await unBlockHosts();
+        await unBlockAllHosts();
         await clearBrowser();
         await sleep(5000);
         await stopCurrentTask();

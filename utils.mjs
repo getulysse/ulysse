@@ -59,11 +59,6 @@ export const unBlockHosts = async () => {
     fs.writeFileSync(HOSTS_CONFIG_PATH, lines, 'utf8');
 };
 
-export const unBlockDns = async () => {
-    await unBlockAllHosts();
-    await unBlockHosts();
-};
-
 export const blockApps = async (apps) => {
     for await (const app of apps) {
         await exec(`chmod -x /usr/bin/${app}`);
