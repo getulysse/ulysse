@@ -13,12 +13,15 @@ const configPath = params.includes('--config') ? params[params.indexOf('--config
 export const config = JSON.parse(await fs.readFileSync(configPath, 'utf8'));
 
 export const blockAllHosts = async (whitelist) => {
+    const server = config.server.replace('https://', '');
+
     const lines = [
         'domain-needed',
         'bogus-priv',
         'no-resolv',
         'server=9.9.9.9',
         'server=/toggl.com/#',
+        `server=/${server}/#`,
         'address=/#/0.0.0.0',
         'address=/#/::',
         '',
