@@ -11,6 +11,8 @@ const port = 3000;
 process.env.JWT_SECRET = 'mys3cr3t';
 process.env.JWT_TOKEN_TTL = '30d';
 
+console.log('Starting server...');
+
 const isAuthenticated = async (token, secret) => {
     try {
         if (token) {
@@ -22,10 +24,6 @@ const isAuthenticated = async (token, secret) => {
         return false;
     }
 };
-
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
 
 app.get('/unblock', async (req, res) => {
     const token = req.params.token || req.headers['x-access-token'] || req.query.token;
