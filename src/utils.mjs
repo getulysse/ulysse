@@ -119,9 +119,26 @@ export const checkDaemon = async () => {
     }
 };
 
+export const restartBrowser = async (browser) => {
+    const execAsync = uti.promisify(exec);
+    const { stdout } = await execAsync(`pgrep -f "${browser}"`).catch(() => false);
+
+    if (!stdout) return;
+
+    await exec(`pkill -TERM ${browser}`);
+    await sleep(2000);
+    await exec(`sudo -u ${process.env.SUDO_USER} ${browser}`);
+};
+
+export const restartBrowsers = async () => {
+    const browsers = ['firefox', 'chromium', 'google-chrome'];
+
+    for await (const browser of browsers) {
+        await restartBrowser(browser);
+    }
+};
+
 export const blockDevices = async () => {
     const socket = io(config.server);
-    socket.emit('block', {}, {}, async () => {
-        process.exit(0);
-    });
+    await socket.emit('block', {}, {});
 };

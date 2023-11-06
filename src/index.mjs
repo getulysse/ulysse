@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { checkDaemon, checkRoot, installDaemon, blockDevices } from './utils.mjs';
+import { checkDaemon, checkRoot, installDaemon, blockDevices, restartBrowsers } from './utils.mjs';
 
 const params = process.argv.slice(2);
 
@@ -23,4 +23,6 @@ if (params.length === 0) {
     await checkRoot();
     await checkDaemon();
     await blockDevices();
+    await restartBrowsers();
+    process.exit(0);
 }
