@@ -9,8 +9,6 @@ if (params.includes('--help') || params.includes('-h')) {
     process.exit(0);
 }
 
-await installDaemon();
-
 if (params.includes('server')) {
     await import('./server.mjs');
 }
@@ -20,6 +18,7 @@ if (params.includes('daemon')) {
 }
 
 if (params.length === 0) {
+    await installDaemon();
     await checkRoot();
     await checkDaemon();
     await blockDevices();

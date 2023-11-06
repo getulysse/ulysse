@@ -42,7 +42,7 @@ app.get('/unblock', async (req, res) => {
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
-    socket.on('block', async ({ params }, __, callback) => {
+    socket.on('block', async ({ params }, __, callback = () => {}) => {
         console.log('Blocking...');
         io.emit('block', params);
         callback();

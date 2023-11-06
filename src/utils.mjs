@@ -13,7 +13,7 @@ const params = process.argv.slice(2);
 
 const configPath = params.includes('--config') ? params[params.indexOf('--config') + 1] : DEFAULT_CONFIG_PATH;
 
-export const config = JSON.parse(await fs.readFileSync(configPath, 'utf8'));
+export const config = fs.existsSync(configPath) && JSON.parse(await fs.readFileSync(configPath, 'utf8'));
 
 export const sleep = async (ms) => new Promise((r) => { setTimeout(r, ms); });
 
