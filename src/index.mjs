@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { blockRoot, blockApps, blockHosts, checkDaemon, checkRoot, installDaemon } from './utils.mjs';
+import { checkDaemon, checkRoot, installDaemon, blockDevices } from './utils.mjs';
 
 const params = process.argv.slice(2);
 
@@ -22,7 +22,5 @@ if (params.includes('daemon')) {
 if (params.length === 0) {
     await checkRoot();
     await checkDaemon();
-    await blockRoot();
-    await blockApps();
-    await blockHosts();
+    await blockDevices();
 }

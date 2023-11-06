@@ -3,6 +3,7 @@ import os from 'os';
 import uti from 'util';
 import { exec } from 'child_process';
 import { Service } from 'node-linux';
+import { io } from 'socket.io-client';
 
 const DEFAULT_CONFIG_PATH = `${process.env.SUDO_USER ? `/home/${process.env.SUDO_USER}` : os.homedir()}/.config/ulysse/config.json`;
 
@@ -92,8 +93,9 @@ export const installDaemon = async () => {
 
     const svc = new Service({
         name: 'ulysse',
+        author: 'johackim',
         description: 'Ulysse',
-        script: `./src/daemon.mjs --config ${configPath}`,
+        script: `${process.argv[1]} daemon --config ${configPath}`,
     });
 
     if (!svc.exists()) {
@@ -115,4 +117,11 @@ export const checkDaemon = async () => {
         console.error('Daemon is not running');
         process.exit(1);
     }
+};
+
+export const blockDevices = async () => {
+    const socket = io(config.server);
+    socket.emit('block', {}, {}, async () => {
+        process.exit(0);
+    });
 };
