@@ -15,6 +15,7 @@ if (params.includes('server')) {
 
 if (params.includes('daemon')) {
     await import('./daemon.mjs');
+    await import('./dns.mjs');
 }
 
 if (params.length === 0) {
