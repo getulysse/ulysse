@@ -18,13 +18,14 @@ export const config = fs.existsSync(configPath) && JSON.parse(await fs.readFileS
 export const sleep = async (ms) => new Promise((r) => { setTimeout(r, ms); });
 
 export const blockHosts = async () => {
-    const { blocklist } = config;
+    const { profiles } = config;
+    const { hosts } = profiles.find((p) => p.name === 'default');
 
-    if (!blocklist.length) return;
+    if (!hosts.length) return;
 
     console.log('Block hosts...');
 
-    fs.writeFileSync(HOSTS_CONFIG_PATH, blocklist.map((host) => `127.0.0.1 ${host} www.${host}`).join('\n'), 'utf8');
+    fs.writeFileSync(HOSTS_CONFIG_PATH, hosts.map((host) => `127.0.0.1 ${host} www.${host}`).join('\n'), 'utf8');
 };
 
 export const unBlockHosts = async () => {
@@ -40,7 +41,8 @@ export const unBlockHosts = async () => {
 };
 
 export const blockApps = async () => {
-    const { apps } = config;
+    const { profiles } = config;
+    const { apps } = profiles.find((p) => p.name === 'default');
 
     if (!apps.length) return;
 
@@ -53,7 +55,8 @@ export const blockApps = async () => {
 };
 
 export const unBlockApps = async () => {
-    const { apps } = config;
+    const { profiles } = config;
+    const { apps } = profiles.find((p) => p.name === 'default');
 
     for await (const app of apps) {
         await exec(`chmod +x /usr/bin/${app}`);
