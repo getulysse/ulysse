@@ -2,10 +2,10 @@ import { io } from 'socket.io-client';
 import {
     blockRoot,
     blockApps,
-    blockHosts,
+    blockDns,
     unBlockRoot,
     unBlockApps,
-    unBlockHosts,
+    unBlockDns,
     checkRoot,
     config,
 } from './utils.mjs';
@@ -24,12 +24,12 @@ socket.on('block', async () => {
     console.log('Blocking...');
     await blockRoot();
     await blockApps();
-    await blockHosts();
+    await blockDns();
 });
 
 socket.on('unblock', async () => {
     console.log('Unblocking...');
     await unBlockRoot();
     await unBlockApps();
-    await unBlockHosts();
+    await unBlockDns();
 });

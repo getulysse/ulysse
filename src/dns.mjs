@@ -1,52 +1,65 @@
 import dgram from 'dgram';
 import packet from 'native-dns-packet';
+import { config } from './utils.mjs';
+
+const DNS_SERVER = '9.9.9.9';
 
 const server = dgram.createSocket('udp4');
 
-const records = {
-    1: 'A',
-    2: 'NS',
-    5: 'CNAME',
-    6: 'SOA',
-    12: 'PTR',
-    15: 'MX',
-    16: 'TXT',
-    28: 'AAAA',
-};
+const args = process.argv.slice(2);
 
-server.on('message', (msg, rinfo) => {
-    try {
-        const query = packet.parse(msg);
+let profile = 'default';
 
-        const { name, type, class: class_ } = query.question[0];
+args.forEach((val, index) => {
+    if (val === '-p' || val === '--profile') {
+        profile = args[index + 1];
+    }
+});
 
-        if (records[type] !== 'A' && records[type] !== 'AAAA') {
+const { profiles } = config;
+
+const { hosts, whitelist } = profiles.find((p) => p.name === profile);
+
+server.on('message', async (msg, rinfo) => {
+    const proxy = dgram.createSocket('udp4');
+
+    proxy.on('message', (response) => {
+        const responsePacket = packet.parse(response);
+        const domain = responsePacket.question?.[0]?.name;
+
+        if (whitelist.includes(domain)) {
+            server.send(response, rinfo.port, rinfo.address);
+            proxy.close();
             return;
         }
 
-        const response = {
-            header: {
-                id: query.header.id,
-            },
-            question: query.question,
-            answer: [{
-                name,
-                type,
-                class: class_,
-                ttl: 300,
-                address: '127.0.0.1',
-            }],
-            authority: [],
-            additional: [],
-        };
+        if (!hosts.includes(domain) && !hosts.includes('*')) {
+            server.send(response, rinfo.port, rinfo.address);
+            proxy.close();
+            return;
+        }
 
-        const buf = Buffer.alloc(4096);
-        const responseBuffer = packet.write(buf, response);
-        const res = buf.slice(0, responseBuffer);
-        server.send(res, rinfo.port, rinfo.address);
-    } catch (err) {
-        console.error(err);
-    }
+        if (responsePacket.answer.length === 0) {
+            server.send(response, rinfo.port, rinfo.address);
+            proxy.close();
+            return;
+        }
+
+        responsePacket.answer = responsePacket.answer.map((answer) => {
+            if (answer.type === 1) {
+                return { ...answer, address: '127.0.0.1' };
+            }
+
+            return answer;
+        });
+
+        const buffer = Buffer.alloc(4096);
+        packet.write(buffer, responsePacket);
+        server.send(buffer, 0, buffer.length, rinfo.port, rinfo.address);
+        proxy.close();
+    });
+
+    proxy.send(msg, 0, msg.length, 53, DNS_SERVER);
 });
 
 server.bind(53);

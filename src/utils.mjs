@@ -7,42 +7,43 @@ import { io } from 'socket.io-client';
 
 const DEFAULT_CONFIG_PATH = `${process.env.SUDO_USER ? `/home/${process.env.SUDO_USER}` : os.homedir()}/.config/ulysse/config.json`;
 
-const HOSTS_CONFIG_PATH = process.env.HOSTS_CONFIG_PATH || '/etc/hosts';
-
 const params = process.argv.slice(2);
 
 const configPath = params.includes('--config') ? params[params.indexOf('--config') + 1] : DEFAULT_CONFIG_PATH;
+
+const args = process.argv.slice(2);
+
+let profile = 'default';
+
+args.forEach((val, index) => {
+    if (val === '-p' || val === '--profile') {
+        profile = args[index + 1];
+    }
+});
 
 export const config = fs.existsSync(configPath) && JSON.parse(await fs.readFileSync(configPath, 'utf8'));
 
 export const sleep = async (ms) => new Promise((r) => { setTimeout(r, ms); });
 
-export const blockHosts = async () => {
-    const { profiles } = config;
-    const { hosts } = profiles.find((p) => p.name === 'default');
-
-    if (!hosts.length) return;
-
-    console.log('Block hosts...');
-
-    fs.writeFileSync(HOSTS_CONFIG_PATH, hosts.map((host) => `127.0.0.1 ${host} www.${host}`).join('\n'), 'utf8');
+export const editResolvConfig = async (nameserver) => {
+    const RESOLV_CONFIG_PATH = process.env.HOSTS_CONFIG_PATH || '/etc/resolv.conf';
+    await exec(`chattr -i ${RESOLV_CONFIG_PATH}`);
+    fs.writeFileSync(RESOLV_CONFIG_PATH, `nameserver ${nameserver}`, 'utf8');
+    await exec(`chattr +i ${RESOLV_CONFIG_PATH}`);
 };
 
-export const unBlockHosts = async () => {
-    const lines = [
-        '# Static table lookup for hostnames.',
-        '# See hosts(5) for details.',
-        '',
-        '127.0.0.1 localhost',
-        '::1 localhost ip6-localhost ip6-loopback',
-    ].join('\n');
+export const blockDns = async () => {
+    console.log('Block hosts...');
+    await editResolvConfig('127.0.0.1');
+};
 
-    fs.writeFileSync(HOSTS_CONFIG_PATH, lines, 'utf8');
+export const unBlockDns = async () => {
+    await editResolvConfig('9.9.9.9');
 };
 
 export const blockApps = async () => {
     const { profiles } = config;
-    const { apps } = profiles.find((p) => p.name === 'default');
+    const { apps } = profiles.find((p) => p.name === profile);
 
     if (!apps.length) return;
 
@@ -56,7 +57,7 @@ export const blockApps = async () => {
 
 export const unBlockApps = async () => {
     const { profiles } = config;
-    const { apps } = profiles.find((p) => p.name === 'default');
+    const { apps } = profiles.find((p) => p.name === profile);
 
     for await (const app of apps) {
         await exec(`chmod +x /usr/bin/${app}`);
@@ -98,7 +99,7 @@ export const installDaemon = async () => {
         name: 'ulysse',
         author: 'johackim',
         description: 'Ulysse',
-        script: `${process.argv[1]} daemon --config ${configPath}`,
+        script: `${process.argv[1]} daemon --config ${configPath} -p default`,
     });
 
     if (!svc.exists()) {
