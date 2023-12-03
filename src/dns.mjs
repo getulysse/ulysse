@@ -8,15 +8,9 @@ const server = dgram.createSocket('udp4');
 
 const args = process.argv.slice(2);
 
-let profile = 'default';
+const profile = args.find((arg) => arg === '-p') ? args[args.indexOf('-p') + 1] : 'default';
 
-args.forEach((val, index) => {
-    if (val === '-p' || val === '--profile') {
-        profile = args[index + 1];
-    }
-});
-
-const { profiles } = config;
+const { profiles } = config();
 
 const { hosts, whitelist } = profiles.find((p) => p.name === profile);
 

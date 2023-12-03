@@ -10,7 +10,7 @@ import {
     config,
 } from './utils.mjs';
 
-const { server } = config;
+const { server } = config();
 
 await checkRoot();
 

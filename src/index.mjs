@@ -5,7 +5,7 @@ import { checkDaemon, checkRoot, installDaemon, blockDevices, restartBrowsers } 
 const params = process.argv.slice(2);
 
 if (params.includes('--help') || params.includes('-h')) {
-    console.log('Usage: ulysse [block|daemon|server]');
+    console.log('Usage: ulysse [daemon|server]');
     process.exit(0);
 }
 
@@ -18,7 +18,7 @@ if (params.includes('daemon')) {
     await import('./dns.mjs');
 }
 
-if (params.length === 0 || params.includes('block')) {
+if (!params.includes('server') && !params.includes('daemon')) {
     await installDaemon();
     await checkRoot();
     await checkDaemon();

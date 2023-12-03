@@ -5,29 +5,31 @@ import { exec } from 'child_process';
 import { Service } from 'node-linux';
 import { io } from 'socket.io-client';
 
-const DEFAULT_CONFIG_PATH = `${process.env.SUDO_USER ? `/home/${process.env.SUDO_USER}` : os.homedir()}/.config/ulysse/config.json`;
-
 const params = process.argv.slice(2);
-
-const configPath = params.includes('--config') ? params[params.indexOf('--config') + 1] : DEFAULT_CONFIG_PATH;
 
 const args = process.argv.slice(2);
 
-let profile = 'default';
+const profile = args.find((arg) => arg === '-p') ? args[args.indexOf('-p') + 1] : 'default';
 
-args.forEach((val, index) => {
-    if (val === '-p' || val === '--profile') {
-        profile = args[index + 1];
-    }
-});
+export const config = () => {
+    const DEFAULT_CONFIG_PATH = `${process.env.SUDO_USER ? `/home/${process.env.SUDO_USER}` : os.homedir()}/.config/ulysse/config.json`;
+    const configPath = params.includes('--config') ? params[params.indexOf('--config') + 1] : DEFAULT_CONFIG_PATH;
 
-export const config = fs.existsSync(configPath) && JSON.parse(await fs.readFileSync(configPath, 'utf8'));
+    if (!fs.existsSync(configPath)) return { profiles: [], configPath };
+
+    const content = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    content.profiles = content.profiles.map((p) => ({ ...p, hosts: p.hosts.flatMap((host) => [host, `www.${host}`]) }));
+
+    return { ...content, configPath };
+};
 
 export const sleep = async (ms) => new Promise((r) => { setTimeout(r, ms); });
 
 export const editResolvConfig = async (nameserver) => {
-    const RESOLV_CONFIG_PATH = process.env.HOSTS_CONFIG_PATH || '/etc/resolv.conf';
+    const RESOLV_CONFIG_PATH = process.env.RESOLV_CONFIG_PATH || '/etc/resolv.conf';
     await exec(`chattr -i ${RESOLV_CONFIG_PATH}`);
+    await sleep(1000);
     fs.writeFileSync(RESOLV_CONFIG_PATH, `nameserver ${nameserver}`, 'utf8');
     await exec(`chattr +i ${RESOLV_CONFIG_PATH}`);
 };
@@ -42,7 +44,7 @@ export const unBlockDns = async () => {
 };
 
 export const blockApps = async () => {
-    const { profiles } = config;
+    const { profiles } = config();
     const { apps } = profiles.find((p) => p.name === profile);
 
     if (!apps.length) return;
@@ -56,7 +58,7 @@ export const blockApps = async () => {
 };
 
 export const unBlockApps = async () => {
-    const { profiles } = config;
+    const { profiles } = config();
     const { apps } = profiles.find((p) => p.name === profile);
 
     for await (const app of apps) {
@@ -99,7 +101,7 @@ export const installDaemon = async () => {
         name: 'ulysse',
         author: 'johackim',
         description: 'Ulysse',
-        script: `${process.argv[1]} daemon --config ${configPath} -p default`,
+        script: `${process.argv[1]} daemon --config ${config().configPath} -p ${profile}`,
     });
 
     if (!svc.exists()) {
@@ -143,6 +145,6 @@ export const restartBrowsers = async () => {
 };
 
 export const blockDevices = async () => {
-    const socket = io(config.server);
+    const socket = io(config().server);
     await socket.emit('block', {}, {});
 };
