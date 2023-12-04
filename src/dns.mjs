@@ -6,20 +6,21 @@ const DNS_SERVER = '9.9.9.9';
 
 const server = dgram.createSocket('udp4');
 
-const args = process.argv.slice(2);
-
-const profile = args.find((arg) => arg === '-p') ? args[args.indexOf('-p') + 1] : 'default';
-
-const { profiles } = config();
-
-const { hosts, whitelist } = profiles.find((p) => p.name === profile);
-
 server.on('message', async (msg, rinfo) => {
+    const { currentProfile, profiles, server: serverUrl } = config();
+    const { hosts, whitelist } = profiles.find((p) => p.name === currentProfile);
+
     const proxy = dgram.createSocket('udp4');
 
     proxy.on('message', (response) => {
         const responsePacket = packet.parse(response);
         const domain = responsePacket.question?.[0]?.name;
+
+        if (domain === serverUrl.replace('https://', '')) {
+            server.send(response, rinfo.port, rinfo.address);
+            proxy.close();
+            return;
+        }
 
         if (whitelist.includes(domain)) {
             server.send(response, rinfo.port, rinfo.address);

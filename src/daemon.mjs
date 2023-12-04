@@ -20,8 +20,9 @@ const socket = io(server);
 
 socket.on('connect', () => console.log('Connected to the server'));
 
-socket.on('block', async () => {
+socket.on('block', async ({ currentProfile }) => {
     console.log('Blocking...');
+    await config({ currentProfile });
     await blockRoot();
     await blockApps();
     await blockDns();

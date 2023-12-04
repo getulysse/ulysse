@@ -5,19 +5,17 @@ import { exec } from 'child_process';
 import { Service } from 'node-linux';
 import { io } from 'socket.io-client';
 
-const params = process.argv.slice(2);
-
 const args = process.argv.slice(2);
 
-const profile = args.find((arg) => arg === '-p') ? args[args.indexOf('-p') + 1] : 'default';
-
-export const config = () => {
+export const config = (data = {}) => {
     const DEFAULT_CONFIG_PATH = `${process.env.SUDO_USER ? `/home/${process.env.SUDO_USER}` : os.homedir()}/.config/ulysse/config.json`;
-    const configPath = params.includes('--config') ? params[params.indexOf('--config') + 1] : DEFAULT_CONFIG_PATH;
+    const configPath = args.includes('--config') ? args[args.indexOf('--config') + 1] : DEFAULT_CONFIG_PATH;
 
     if (!fs.existsSync(configPath)) return { profiles: [], configPath };
 
     const content = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    fs.writeFileSync(configPath, JSON.stringify({ ...content, ...data }, null, 4), 'utf8');
 
     content.profiles = content.profiles.map((p) => ({ ...p, hosts: p.hosts.flatMap((host) => [host, `www.${host}`]) }));
 
@@ -44,8 +42,8 @@ export const unBlockDns = async () => {
 };
 
 export const blockApps = async () => {
-    const { profiles } = config();
-    const { apps } = profiles.find((p) => p.name === profile);
+    const { currentProfile, profiles } = config();
+    const { apps } = profiles.find((p) => p.name === currentProfile);
 
     if (!apps.length) return;
 
@@ -58,8 +56,8 @@ export const blockApps = async () => {
 };
 
 export const unBlockApps = async () => {
-    const { profiles } = config();
-    const { apps } = profiles.find((p) => p.name === profile);
+    const { currentProfile, profiles } = config();
+    const { apps } = profiles.find((p) => p.name === currentProfile);
 
     for await (const app of apps) {
         await exec(`chmod +x /usr/bin/${app}`);
@@ -92,6 +90,7 @@ export const checkRoot = async () => {
 };
 
 export const installDaemon = async () => {
+    const { currentProfile, configPath } = config();
     await checkRoot();
 
     const originalConsoleLog = console.log;
@@ -101,7 +100,7 @@ export const installDaemon = async () => {
         name: 'ulysse',
         author: 'johackim',
         description: 'Ulysse',
-        script: `${process.argv[1]} daemon --config ${config().configPath} -p ${profile}`,
+        script: `${process.argv[1]} daemon --config ${configPath} -p ${currentProfile}`,
     });
 
     if (!svc.exists()) {
@@ -145,6 +144,7 @@ export const restartBrowsers = async () => {
 };
 
 export const blockDevices = async () => {
+    const currentProfile = args.find((arg) => arg === '-p') ? args[args.indexOf('-p') + 1] : 'default';
     const socket = io(config().server);
-    await socket.emit('block', {}, {});
+    await socket.emit('block', { params: { currentProfile } }, {});
 };
