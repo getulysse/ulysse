@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { checkDaemon, checkRoot, installDaemon, blockDevices, restartBrowsers } from './utils.mjs';
+import { checkDaemon, checkRoot, installDaemon, blockDevices, restartBrowsers, sendWebhook } from './utils.mjs';
 
 const params = process.argv.slice(2);
 
@@ -24,5 +24,6 @@ if (!params.includes('server') && !params.includes('daemon')) {
     await checkDaemon();
     await blockDevices();
     await restartBrowsers();
+    await sendWebhook({ action: 'block' });
     process.exit(0);
 }

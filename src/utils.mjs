@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import uti from 'util';
+import fetch from 'node-fetch';
 import { exec } from 'child_process';
 import { Service } from 'node-linux';
 import { io } from 'socket.io-client';
@@ -147,4 +148,26 @@ export const blockDevices = async () => {
     const currentProfile = args.find((arg) => arg === '-p') ? args[args.indexOf('-p') + 1] : 'default';
     const socket = io(config().server);
     await socket.emit('block', { params: { currentProfile } }, {});
+};
+
+export const sendWebhook = async (data, retry = 1) => {
+    const { webhookUrl } = config();
+
+    if (!webhookUrl || process.env.NODE_ENV === 'test') {
+        return;
+    }
+
+    const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+
+    if (retry >= 3) {
+        return;
+    }
+
+    if (res.status !== 200) {
+        await sendWebhook(data, retry + 1);
+    }
 };

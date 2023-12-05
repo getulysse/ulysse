@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import {
+    sendWebhook,
     blockRoot,
     blockApps,
     blockDns,
@@ -33,4 +34,5 @@ socket.on('unblock', async () => {
     await unBlockRoot();
     await unBlockApps();
     await unBlockDns();
+    await sendWebhook({ action: 'unblock' });
 });
