@@ -85,7 +85,7 @@ export const checkRoot = async () => {
     const { stdout } = await execAsync('whoami').catch(() => false);
 
     if (stdout.trim() !== 'root') {
-        console.error('You must be root to run this command');
+        console.error('You must be root or have capabilities to run this command.');
         process.exit(1);
     }
 };
