@@ -1,14 +1,12 @@
 import dgram from 'dgram';
 import packet from 'native-dns-packet';
-import { config } from './utils.mjs';
-
-const DNS_SERVER = '9.9.9.9';
+import { readConfig, isDomainBlocked } from './utils';
+import { DNS_SERVER, DNS_PORT } from './constants';
 
 const server = dgram.createSocket('udp4');
 
 server.on('message', async (msg, rinfo) => {
-    const { currentProfile, profiles, server: serverUrl } = config();
-    const { hosts, whitelist } = profiles.find((p) => p.name === currentProfile);
+    const { blocklist, whitelist } = readConfig();
 
     const proxy = dgram.createSocket('udp4');
 
@@ -16,25 +14,9 @@ server.on('message', async (msg, rinfo) => {
         const responsePacket = packet.parse(response);
         const domain = responsePacket.question?.[0]?.name;
 
-        if (domain === serverUrl.replace('https://', '')) {
-            server.send(response, rinfo.port, rinfo.address);
-            proxy.close();
-            return;
-        }
+        const isBlocked = isDomainBlocked(domain, blocklist, whitelist);
 
-        if (whitelist.includes(domain)) {
-            server.send(response, rinfo.port, rinfo.address);
-            proxy.close();
-            return;
-        }
-
-        if (!hosts.includes(domain) && !hosts.includes('*')) {
-            server.send(response, rinfo.port, rinfo.address);
-            proxy.close();
-            return;
-        }
-
-        if (responsePacket.answer.length === 0) {
+        if (!isBlocked || responsePacket.answer.length === 0) {
             server.send(response, rinfo.port, rinfo.address);
             proxy.close();
             return;
@@ -57,6 +39,6 @@ server.on('message', async (msg, rinfo) => {
     proxy.send(msg, 0, msg.length, 53, DNS_SERVER);
 });
 
-server.bind(53);
+server.bind(DNS_PORT);
 
-console.log('DNS Server started on port 53');
+console.log(`Starting DNS server on port ${DNS_PORT}...`);

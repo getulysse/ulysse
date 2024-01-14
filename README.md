@@ -1,11 +1,20 @@
 # Ulysse
 
+## 📋 Requirements
+
+- Linux
+- Node.js >= 14.0.0
+
 ## ✨ Features
 
 - [ ] Block your distracting apps
 - [ ] Block your distracting websites
-- [ ] Hardcore mode (no way to bypass)
+- [ ] Shield mode (no way to bypass)
 - [ ] Webhook support (for n8n, Zapier, IFTTT, etc...)
+- [ ] Linux support
+- [ ] Windows support
+- [ ] macOS support
+- [ ] Android support
 
 ## 📦 Installation
 
@@ -15,8 +24,39 @@ npm i -g ulysse
 
 ## 📖 Usage
 
-```bash
-ulysse
+```txt
+Usage: ulysse [OPTIONS]
+
+  Ulysse: A simple and powerful tool to block your distracting apps and websites.
+
+Options:
+  -b, --block TARGET [-t, --time VALUE]
+                           Block a specific website or application. Optionally, add a time-based setting.
+                           The VALUE format can include usage limits, specific time intervals,
+                           or a quick block duration.
+                           Examples: 
+                             'ulysse -b example.com' (block indefinitely)
+                             'ulysse -b example.com -t 30m/day' (block with a daily limit)
+                             'ulysse -b MyAppName -t 10am-6pm' (block during specific hours)
+                             'ulysse -b example.com -t 10m' (block for a short duration)
+                             'ulysse -b example.com/path' (block a specific path)
+                             'ulysse -b "*.*"' (block all websites)
+
+  -u, --unblock TARGET     Unblock a specific website or application.
+                           Example: 'ulysse -u example.com' or 'ulysse -u MyAppName'.
+
+  -w, --whitelist          Whitelist a specific website.
+                           Example: 'ulysse -w example.com'.
+
+  -s, --shield             Enable shield mode to prevent jailbreak.
+                           Example: 'ulysse -s' or 'ulysse --shield'.
+
+  -d, --daemon             Run Ulysse as a daemon.
+                           Example: 'ulysse -d' or 'ulysse --daemon'.
+
+  -l, --list               List all currently blocked websites and apps.
+
+  -h, --help               Show this message and exit.
 ```
 
 ## 🎁 Support me
