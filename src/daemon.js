@@ -7,10 +7,12 @@ import {
     blockRoot,
     checkSudo,
     blockApps,
+    updateResolvConf,
     sendNotification,
 } from './utils';
 
 checkSudo();
+updateResolvConf();
 
 console.log('Starting daemon...');
 

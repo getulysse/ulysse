@@ -16,7 +16,7 @@ const hasParam = (p) => p.some((param) => process.argv.includes(param));
 
 const getParam = (p) => process.argv[process.argv.indexOf(p) + 1];
 
-if (hasParam(['--help', '-h'])) {
+if (hasParam(['--help', '-h']) || process.argv.length === 2) {
     console.log('Usage: ulysse [options]');
     process.exit(0);
 }

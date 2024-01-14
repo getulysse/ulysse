@@ -144,6 +144,10 @@ export const checkDaemon = () => {
     const apps = getApps();
 
     const cmds = [
+        'sudo ulysse -d',
+        'sudo ulysse --daemon',
+        'sudo -E ulysse -d',
+        'sudo -E ulysse --daemon',
         'sudo npm run start -- --daemon',
         'sudo npx babel-node src/daemon.js',
         'sudo npx babel-node src/index.js --daemon',
@@ -155,6 +159,13 @@ export const checkDaemon = () => {
         console.error('You must run the daemon first.');
         process.exit(1);
     }
+};
+
+export const updateResolvConf = () => {
+    exec('sudo chattr -i /etc/resolv.conf').on('close', () => {
+        fs.writeFileSync('/etc/resolv.conf', 'nameserver 127.0.0.1', 'utf8');
+        exec('sudo chattr +i /etc/resolv.conf');
+    });
 };
 
 /* const isWritable = (path) => {
