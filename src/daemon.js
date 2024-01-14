@@ -26,7 +26,7 @@ setInterval(() => {
     const config = readConfig();
     const { blocklist, whitelist } = readConfig(PIPE_PATH);
 
-    exec(`chattr -i ${DEFAULT_CONFIG_PATH}`).on('close', () => {
+    exec(`sudo chattr -i ${DEFAULT_CONFIG_PATH}`).on('close', () => {
         config.blocklist = [...new Set([...config.blocklist, ...blocklist])];
         if (!config.shield) {
             config.whitelist = [...new Set([...config.whitelist, ...whitelist])];
