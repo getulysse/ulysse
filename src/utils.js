@@ -6,9 +6,13 @@ import { exec } from 'child_process';
 import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG, PIPE_PATH } from './constants';
 
 export const readConfig = (path = DEFAULT_CONFIG_PATH) => {
+    const uid = Number(process.env.SUDO_UID || process.getuid());
+    const gid = Number(process.env.SUDO_GID || process.getgid());
+
     if (!fs.existsSync(path)) {
         fs.mkdirSync(dirname(path), { recursive: true });
         fs.writeFileSync(path, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
+        fs.chownSync(path, uid, gid);
     }
 
     const config = JSON.parse(fs.readFileSync(path, 'utf8'));
@@ -123,8 +127,8 @@ export const blockApps = () => {
 };
 
 export const blockRoot = () => {
-    exec('chattr +i /etc/resolv.conf');
-    exec(`chattr +i ${DEFAULT_CONFIG_PATH}`);
+    exec('sudo chattr +i /etc/resolv.conf');
+    exec(`sudo chattr +i ${DEFAULT_CONFIG_PATH}`);
     const config = readConfig();
     editConfig({ ...config, shield: true });
 };

@@ -32,7 +32,9 @@ setInterval(() => {
             config.whitelist = [...new Set([...config.whitelist, ...whitelist])];
         }
         editConfig(config);
-        blockRoot();
+        if (config.shield) {
+            blockRoot();
+        }
         fs.unlinkSync(PIPE_PATH);
     });
 }, 1000);
