@@ -151,6 +151,7 @@ export const checkDaemon = () => {
         'sudo npm run start -- --daemon',
         'sudo npx babel-node src/daemon.js',
         'sudo npx babel-node src/index.js --daemon',
+        'sudo -E npx babel-node src/index.js --daemon',
     ];
 
     const isDaemonRunning = apps.some((p) => cmds.includes(p.cmd));

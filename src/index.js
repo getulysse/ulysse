@@ -14,7 +14,15 @@ const config = readConfig();
 
 const hasParam = (p) => p.some((param) => process.argv.includes(param));
 
-const getParam = (p) => process.argv[process.argv.indexOf(p) + 1];
+const getParam = (p) => {
+    const index = process.argv.indexOf(p);
+
+    if (index === -1) {
+        return null;
+    }
+
+    return process.argv[index + 1];
+};
 
 if (hasParam(['--help', '-h']) || process.argv.length === 2) {
     console.log('Usage: ulysse [options]');
