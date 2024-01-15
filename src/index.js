@@ -3,81 +3,74 @@
 import { version } from '../package.json';
 import {
     blockRoot,
-    readConfig,
-    checkDaemon,
     blockDistraction,
     unblockDistraction,
     whitelistDistraction,
 } from './utils';
 
-const config = readConfig();
+if (process.env.NODE_ENV === 'test') {
+    console.log = () => {};
+}
 
-const hasParam = (p) => p.some((param) => process.argv.includes(param));
-
-const getParam = (p) => {
-    const index = process.argv.indexOf(p);
-
-    if (index === -1) {
-        return null;
-    }
-
-    return process.argv[index + 1];
+const getParam = (key) => {
+    const index = process.argv.indexOf(key);
+    return index !== -1 ? process.argv[index + 1] : null;
 };
 
-if (hasParam(['--help', '-h']) || process.argv.length === 2) {
+export const helpCmd = () => {
     console.log('Usage: ulysse [options]');
-    process.exit(0);
-}
+};
 
-if (hasParam(['--version', '-v'])) {
+export const versionCmd = () => {
     console.log(version);
-    process.exit(0);
-}
+};
 
-if (hasParam(['--list', '-l'])) {
-    console.log('List of blocked devices');
-    process.exit(0);
-}
+export const daemonCmd = async () => {
+    await import('./daemon');
+};
 
-if (hasParam(['--daemon', '-d'])) {
-    import('./daemon');
-} else {
-    checkDaemon();
-}
+export const blockCmd = (value) => {
+    blockDistraction(value);
+    console.log(`Blocking ${value}`);
+};
 
-if (hasParam(['--block', '-b'])) {
-    const distraction = getParam('--block') || getParam('-b');
-    blockDistraction(distraction);
-    console.log(`Blocking ${distraction}`);
-    process.exit(0);
-}
-
-if (hasParam(['--shield', '-s'])) {
+export const shieldCmd = () => {
     blockRoot();
     console.log('Shield mode enabled');
-    process.exit(0);
-}
+};
 
-if (!hasParam(['--daemon', '-d']) && config.shield) {
-    console.log('You must disable shield mode to unblock a distraction.');
-    process.exit(1);
-}
+export const unblockCmd = (value) => {
+    unblockDistraction(value);
+    console.log(`Unblocking ${value}`);
+};
 
-if (hasParam(['--unblock', '-u'])) {
-    const distraction = getParam('--unblock') || getParam('-u');
-    unblockDistraction(distraction);
-    console.log(`Unblocking ${distraction}`);
-    process.exit(0);
-}
+export const whitelistCmd = (value) => {
+    whitelistDistraction(value);
+    console.log(`Whitelisting ${value}`);
+};
 
-if (hasParam(['--clear', '-c'])) {
-    console.log('Clearing blocked devices');
-    process.exit(0);
-}
+const commands = {
+    '--help': helpCmd,
+    '--version': versionCmd,
+    '--daemon': daemonCmd,
+    '--block': blockCmd,
+    '--unblock': unblockCmd,
+    '--shield': shieldCmd,
+    '--whitelist': whitelistCmd,
+};
 
-if (hasParam(['--whitelist', '-w'])) {
-    const distraction = getParam('--whitelist') || getParam('-w');
-    whitelistDistraction(distraction);
-    console.log(`Whitelisting ${distraction}`);
-    process.exit(0);
-}
+const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
+
+const processCommand = () => {
+    const command = Object.keys(commands).find((c) => process.argv.includes(c) || process.argv.includes(getAlias(c)));
+    const alias = getAlias(command);
+    const value = getParam(command) || getParam(alias);
+
+    if (command) {
+        commands[command](value);
+    } else {
+        helpCmd();
+    }
+};
+
+processCommand();

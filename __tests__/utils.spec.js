@@ -1,5 +1,3 @@
-import fs from 'fs';
-import { PIPE_PATH } from '../src/constants';
 import {
     readConfig,
     editConfig,
@@ -25,7 +23,7 @@ test('Should block a domain', async () => {
 
     await blockDistraction(domain);
 
-    const config = readConfig(PIPE_PATH);
+    const config = readConfig();
     expect(config.blocklist).toContain(domain);
 });
 
@@ -34,7 +32,7 @@ test('Should block an app', async () => {
 
     await blockDistraction(app);
 
-    const config = readConfig(PIPE_PATH);
+    const config = readConfig();
     expect(config.blocklist).toContain(app);
 });
 
@@ -43,7 +41,7 @@ test('Should unblock a domain', async () => {
 
     await unblockDistraction(domain);
 
-    const config = readConfig(PIPE_PATH);
+    const config = readConfig();
     expect(config.blocklist).not.toContain(domain);
 });
 
@@ -52,7 +50,7 @@ test('Should unblock an app', async () => {
 
     await unblockDistraction(app);
 
-    const config = readConfig(PIPE_PATH);
+    const config = readConfig();
     expect(config.blocklist).not.toContain(app);
 });
 
@@ -61,10 +59,6 @@ test('Should whitelist a domain', async () => {
 
     await whitelistDistraction(domain);
 
-    const config = readConfig(PIPE_PATH);
+    const config = readConfig();
     expect(config.whitelist).toContain(domain);
-});
-
-afterAll(() => {
-    fs.unlinkSync(PIPE_PATH);
 });

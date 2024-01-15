@@ -3,18 +3,27 @@ import dns from 'dns';
 import uti from 'util';
 import { dirname } from 'path';
 import { exec } from 'child_process';
-import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG, PIPE_PATH } from './constants';
+import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG } from './constants';
 
-export const readConfig = (path = DEFAULT_CONFIG_PATH) => {
+const tryCatch = (fn) => (...args) => {
+    try {
+        return fn(...args);
+    } catch (error) {
+        return false;
+    }
+};
+
+export const createConfig = (path) => {
     const uid = Number(process.env.SUDO_UID || process.getuid());
     const gid = Number(process.env.SUDO_GID || process.getgid());
 
-    if (!fs.existsSync(path)) {
-        fs.mkdirSync(dirname(path), { recursive: true });
-        fs.writeFileSync(path, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
-        fs.chownSync(path, uid, gid);
-    }
+    fs.mkdirSync(dirname(path), { recursive: true });
+    fs.writeFileSync(path, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
+    fs.chownSync(path, uid, gid);
+};
 
+export const readConfig = (path = DEFAULT_CONFIG_PATH) => {
+    if (!fs.existsSync(path)) createConfig(path);
     const config = JSON.parse(fs.readFileSync(path, 'utf8'));
 
     return config;
@@ -38,14 +47,6 @@ export const getDomainIp = (domain) => new Promise((resolve) => {
     });
 });
 
-const tryCatch = (fn) => (...args) => {
-    try {
-        return fn(...args);
-    } catch (error) {
-        return false;
-    }
-};
-
 export const getApps = tryCatch(() => {
     const folders = fs.readdirSync('/proc').filter((f) => !Number.isNaN(Number(f)));
 
@@ -68,20 +69,20 @@ export const blockDistraction = (distraction) => {
     const config = readConfig();
     config.blocklist.push(distraction);
     config.blocklist = [...new Set(config.blocklist)];
-    editConfig(config, PIPE_PATH);
+    editConfig(config);
 };
 
 export const unblockDistraction = (distraction) => {
     const config = readConfig();
     config.blocklist = config.blocklist.filter((d) => d !== distraction);
-    editConfig(config, PIPE_PATH);
+    editConfig(config);
 };
 
 export const whitelistDistraction = (distraction) => {
     const config = readConfig();
     config.whitelist.push(distraction);
     config.whitelist = [...new Set(config.whitelist)];
-    editConfig(config, PIPE_PATH);
+    editConfig(config);
 };
 
 export const isDomainBlocked = (domain, blocklist = [], whitelist = []) => {
@@ -92,8 +93,6 @@ export const isDomainBlocked = (domain, blocklist = [], whitelist = []) => {
 };
 
 export const checkSudo = () => {
-    if (process.env.NODE_ENV === 'test') return;
-
     if (!process.env.SUDO_USER) {
         console.error('You must run this command with sudo.');
         process.exit(1);
@@ -127,20 +126,16 @@ export const blockApps = () => {
 };
 
 export const blockRoot = () => {
-    exec('sudo chattr +i /etc/resolv.conf');
-    exec(`sudo chattr +i ${DEFAULT_CONFIG_PATH}`);
     const config = readConfig();
     editConfig({ ...config, shield: true });
 };
 
 export const unblockRoot = () => {
-    exec('sudo chattr -i /etc/resolv.conf');
-    exec(`sudo chattr -i ${DEFAULT_CONFIG_PATH}`);
+    const config = readConfig();
+    editConfig({ ...config, shield: false });
 };
 
 export const checkDaemon = () => {
-    if (process.env.NODE_ENV === 'test') return;
-
     const apps = getApps();
 
     const cmds = [
@@ -168,12 +163,3 @@ export const updateResolvConf = () => {
         exec('sudo chattr +i /etc/resolv.conf');
     });
 };
-
-/* const isWritable = (path) => {
-    try {
-        fs.accessSync(path, fs.constants.W_OK);
-        return true;
-    } catch (error) {
-        return false;
-    }
-}; */

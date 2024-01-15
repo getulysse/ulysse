@@ -11,10 +11,6 @@
 - [ ] Block your distracting websites
 - [ ] Shield mode (no way to bypass)
 - [ ] Webhook support (for n8n, Zapier, IFTTT, etc...)
-- [ ] Linux support
-- [ ] Windows support
-- [ ] macOS support
-- [ ] Android support
 
 ## 📦 Installation
 
@@ -55,6 +51,8 @@ Options:
                            Example: 'ulysse -d' or 'ulysse --daemon'.
 
   -l, --list               List all currently blocked websites and apps.
+
+  -v, --version            Show the version and exit.
 
   -h, --help               Show this message and exit.
 ```
