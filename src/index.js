@@ -31,6 +31,11 @@ export const daemonCmd = async () => {
 };
 
 export const blockCmd = (value) => {
+    if (!value) {
+        console.log('You must provide a value to block.');
+        return;
+    }
+
     blockDistraction(value);
     console.log(`Blocking ${value}`);
 };
@@ -42,6 +47,12 @@ export const shieldCmd = () => {
 
 export const unblockCmd = (value) => {
     const config = readConfig();
+
+    if (!value) {
+        console.log('You must provide a value to unblock.');
+        return;
+    }
+
     if (config.shield) {
         console.log('You must disable the shield mode first.');
     } else {
@@ -52,6 +63,12 @@ export const unblockCmd = (value) => {
 
 export const whitelistCmd = (value) => {
     const config = readConfig();
+
+    if (!value) {
+        console.log('You must provide a value to whitelist.');
+        return;
+    }
+
     if (config.shield) {
         console.log('You must disable the shield mode first.');
     } else {
