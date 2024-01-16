@@ -163,3 +163,8 @@ export const updateResolvConf = () => {
         exec('sudo chattr +i /etc/resolv.conf');
     });
 };
+
+export const enableShieldMode = () => {
+    const config = readConfig();
+    editConfig({ ...config, shield: true });
+};

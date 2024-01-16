@@ -1,5 +1,13 @@
 # Ulysse
 
+Siren song of the Internet is hard to resist.
+
+Ulysse is a simple and powerful tool to block your distracting apps and websites.
+
+Prevent yourself from getting distracted by blocking your most distracting apps and websites.
+
+The shield of Ulysse is a powerful tool to prevent you from bypassing the block, even if you are an administrator of your computer.
+
 ## 📋 Requirements
 
 - Linux
@@ -7,8 +15,7 @@
 
 ## ✨ Features
 
-- [ ] Block your distracting apps
-- [ ] Block your distracting websites
+- [ ] Block your distracting apps and websites
 - [ ] Shield mode (no way to bypass)
 - [ ] Webhook support (for n8n, Zapier, IFTTT, etc...)
 

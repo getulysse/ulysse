@@ -91,41 +91,49 @@ test('As a user, I can enable shield mode to prevent me from unblocking a domain
     expect(output).toHaveBeenCalledWith('Shield mode enabled');
 });
 
-test.skip('As a user, I can block a specific web page', async () => {
+test('As a user, I cannot unblock a domain or an app if shield mode is enabled', async () => {
+    const output = jest.spyOn(console, 'log');
+    const domain = 'youtube.com';
+
+    blockCmd(domain);
+    shieldCmd();
+    unblockCmd(domain);
+
+    const config = readConfig();
+    expect(config.shield).toBe(true);
+    expect(config.blocklist).toContain(domain);
+    expect(output).toHaveBeenCalledWith('You must disable the shield mode first.');
+});
+
+test('As a user, I cannot whitelist a domain or an app if shield mode is enabled', async () => {
+    const output = jest.spyOn(console, 'log');
+    const domain = 'youtube.com';
+
+    shieldCmd();
+    whitelistCmd(domain);
+
+    expect(output).toHaveBeenCalledWith('You must disable the shield mode first.');
+});
+
+test('As a user, I can block a specific web page', async () => {
+    const output = jest.spyOn(console, 'log');
     const page = 'youtube.com/trending';
 
-    const output = await execSync(`npm run start -- --block ${page}`);
+    blockCmd(page);
 
-    expect(output).toContain(`Blocking ${page}`);
+    expect(output).toHaveBeenCalledWith(`Blocking ${page}`);
 });
 
-test.skip('As a user, I can whitelist a web page', async () => {
+test('As a user, I can whitelist a web page', async () => {
+    const output = jest.spyOn(console, 'log');
     const page = 'youtube.com/@TED/videos';
 
-    const output = await execSync(`npm run start -- --whitelist ${page}`);
+    whitelistCmd(page);
 
-    expect(output).toContain(`Whitelisting ${page}`);
+    expect(output).toHaveBeenCalledWith(`Whitelisting ${page}`);
 });
 
-test.skip('As a user, I cannot unblock a domain or an app if shield mode is enabled', async () => {
-    const domain = 'youtube.com';
-    await execSync('npm run start -- --shield');
-
-    const output = await execSync(`npm run start -- --unblock ${domain}`);
-
-    expect(output).toContain('You cannot unblock a domain or an app while shield mode is enabled');
-});
-
-test.skip('As a user, I cannot whitelist a domain or an app if shield mode is enabled', async () => {
-    const domain = 'youtube.com';
-    await execSync('npm run start -- --shield');
-
-    const output = await execSync(`npm run start -- --whitelist ${domain}`);
-
-    expect(output).toContain('You cannot whitelist a domain or an app while shield mode is enabled');
-});
-
-test.skip('As a user, I can disable shield mode with a QR code to unblock a domain or an app', async () => {
+test.skip('As a user, I can disable shield mode with a secret key', async () => {
     expect(true).toBe(true);
 });
 

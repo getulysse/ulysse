@@ -2,7 +2,8 @@
 
 import { version } from '../package.json';
 import {
-    blockRoot,
+    readConfig,
+    enableShieldMode,
     blockDistraction,
     unblockDistraction,
     whitelistDistraction,
@@ -35,18 +36,28 @@ export const blockCmd = (value) => {
 };
 
 export const shieldCmd = () => {
-    blockRoot();
+    enableShieldMode();
     console.log('Shield mode enabled');
 };
 
 export const unblockCmd = (value) => {
-    unblockDistraction(value);
-    console.log(`Unblocking ${value}`);
+    const config = readConfig();
+    if (config.shield) {
+        console.log('You must disable the shield mode first.');
+    } else {
+        unblockDistraction(value);
+        console.log(`Unblocking ${value}`);
+    }
 };
 
 export const whitelistCmd = (value) => {
-    whitelistDistraction(value);
-    console.log(`Whitelisting ${value}`);
+    const config = readConfig();
+    if (config.shield) {
+        console.log('You must disable the shield mode first.');
+    } else {
+        whitelistDistraction(value);
+        console.log(`Whitelisting ${value}`);
+    }
 };
 
 const commands = {
