@@ -6,6 +6,10 @@ import {
     whitelistDistraction,
 } from '../src/utils';
 
+beforeEach(() => {
+    editConfig({ blocklist: [], whitelist: [], shield: false });
+});
+
 test('Should edit config file', async () => {
     const newConfig = {
         blocklist: ['youtube.com', 'twitter.com', 'signal-desktop', 'kodi'],
@@ -34,6 +38,17 @@ test('Should block an app', async () => {
 
     const config = readConfig();
     expect(config.blocklist).toContain(app);
+});
+
+test('Should not block an inexistent app', async () => {
+    jest.spyOn(process, 'exit').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const app = 'inexistent';
+
+    await blockDistraction(app);
+
+    const config = readConfig();
+    expect(config.blocklist).not.toContain(app);
 });
 
 test('Should unblock a domain', async () => {

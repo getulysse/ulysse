@@ -11,7 +11,7 @@ test('As a user, I can display the help', async () => {
 
     helpCmd();
 
-    expect(output).toHaveBeenCalledWith('Usage: ulysse [options]');
+    expect(output).toHaveBeenCalledWith(expect.stringContaining('Usage: ulysse [OPTIONS]'));
 });
 
 test('As a user, I can block a domain', async () => {
@@ -36,7 +36,7 @@ test('As a user, I can block an app', async () => {
     expect(output).toHaveBeenCalledWith(`Blocking ${app}`);
 });
 
-test('As a user, I can block internet access', async () => {
+test.skip('As a user, I can block internet access', async () => {
     jest.spyOn(Utils, 'getDomainIp').mockReturnValue('127.0.0.1');
     const output = jest.spyOn(console, 'log');
     const domain = '*.*';

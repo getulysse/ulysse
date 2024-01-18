@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { version } from '../package.json';
+import { HELP } from './constants';
 import {
     readConfig,
     enableShieldMode,
@@ -19,7 +20,7 @@ const getParam = (key) => {
 };
 
 export const helpCmd = () => {
-    console.log('Usage: ulysse [options]');
+    console.log(HELP);
 };
 
 export const versionCmd = () => {

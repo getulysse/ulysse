@@ -65,7 +65,20 @@ export const getApps = tryCatch(() => {
     return apps;
 });
 
+export const isAppExist = (app) => {
+    const paths = process.env.PATH.split(':');
+    return paths.some((path) => fs.existsSync(`${path}/${app}`));
+};
+
+export const isDomain = (domain) => /^(\w+\.)+\w+$/.test(domain);
+
 export const blockDistraction = (distraction) => {
+    if (!isDomain(distraction) && !isAppExist(distraction)) {
+        console.error('You must provide a valid domain or app name.');
+        process.exit(1);
+        return;
+    }
+
     const config = readConfig();
     config.blocklist.push(distraction);
     config.blocklist = [...new Set(config.blocklist)];
