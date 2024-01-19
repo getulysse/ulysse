@@ -29,8 +29,17 @@ export const readConfig = (path = DEFAULT_CONFIG_PATH) => {
     return config;
 };
 
+export const isWritable = tryCatch((path) => {
+    fs.accessSync(path, fs.constants.W_OK);
+    return true;
+});
+
 export const editConfig = (config, path = DEFAULT_CONFIG_PATH) => {
-    fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
+    if (isWritable(path)) {
+        fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
+    } else {
+        fs.writeFileSync(`${path}.tmp`, JSON.stringify(config, null, 4), 'utf8');
+    }
 };
 
 export const getDomainIp = (domain) => new Promise((resolve) => {

@@ -10,8 +10,6 @@ export const DEFAULT_CONFIG = {
     whitelist: [],
 };
 
-export const PIPE_PATH = `${DEFAULT_CONFIG_FOLDER_PATH}/pipe.json`;
-
 export const DNS_SERVER = process.env.DNS_SERVER || '9.9.9.9';
 
 export const DNS_PORT = process.env.DNS_PORT || 53;

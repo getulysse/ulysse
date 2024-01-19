@@ -1,3 +1,6 @@
+import fs from 'fs';
+import { exec } from 'child_process';
+import { DEFAULT_CONFIG_PATH } from '../src/constants';
 import {
     readConfig,
     editConfig,
@@ -11,7 +14,7 @@ beforeEach(() => {
     editConfig({ blocklist: [], whitelist: [], shield: false });
 });
 
-test('Should edit config file', async () => {
+test('Should edit config', async () => {
     const newConfig = {
         blocklist: ['youtube.com', 'twitter.com', 'signal-desktop', 'kodi'],
         whitelist: ['spotify.com'],
@@ -21,6 +24,20 @@ test('Should edit config file', async () => {
 
     const config = readConfig();
     expect(config).toEqual(expect.objectContaining(newConfig));
+});
+
+test('Should edit config with a .tmp extension if not writable', async () => {
+    exec(`chmod 000 ${DEFAULT_CONFIG_PATH}`);
+    const newConfig = {
+        blocklist: ['youtube.com', 'twitter.com', 'signal-desktop', 'kodi'],
+        whitelist: ['spotify.com'],
+    };
+
+    editConfig(newConfig);
+
+    const configTmp = JSON.parse(fs.readFileSync(`${DEFAULT_CONFIG_PATH}.tmp`, 'utf8'));
+    expect(configTmp).toEqual(expect.objectContaining(newConfig));
+    exec(`chmod 644 ${DEFAULT_CONFIG_PATH}`);
 });
 
 test('Should block a domain', async () => {
