@@ -8,6 +8,7 @@ import {
     disableShieldMode,
     blockDistraction,
     unblockDistraction,
+    isDaemonRunning,
     isValidDistraction,
     isValidPassword,
     whitelistDistraction,
@@ -35,6 +36,11 @@ export const daemonCmd = async () => {
 };
 
 export const blockCmd = (value) => {
+    if (!isDaemonRunning()) {
+        console.log('You must start the daemon first.');
+        return;
+    }
+
     if (!isValidDistraction(value)) {
         console.log('You must provide a valid value to block.');
         return;

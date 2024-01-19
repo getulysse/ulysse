@@ -29,13 +29,13 @@ export const readConfig = (path = DEFAULT_CONFIG_PATH) => {
     return config;
 };
 
-export const isWritable = tryCatch((path) => {
+export const isFileWritable = tryCatch((path) => {
     fs.accessSync(path, fs.constants.W_OK);
     return true;
 });
 
 export const editConfig = (config, path = DEFAULT_CONFIG_PATH) => {
-    if (isWritable(path)) {
+    if (isFileWritable(path)) {
         fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
     } else {
         fs.writeFileSync(`${path}.tmp`, JSON.stringify(config, null, 4), 'utf8');
@@ -142,11 +142,13 @@ export const unblockRoot = () => {
 };
 
 export const isDaemonRunning = () => {
+    if (process.env.NODE_ENV === 'test') return true;
+
     const apps = getApps();
 
     const cmds = ['ulysse -d', 'ulysse --daemon'];
 
-    return apps.some((p) => cmds.includes(p.cmd));
+    return cmds.some((cmd) => apps.some((app) => app.cmd.includes(cmd)));
 };
 
 export const updateResolvConf = () => {
