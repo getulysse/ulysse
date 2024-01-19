@@ -3,6 +3,7 @@ import {
     editConfig,
     blockDistraction,
     unblockDistraction,
+    isValidDistraction,
     whitelistDistraction,
 } from '../src/utils';
 
@@ -40,17 +41,6 @@ test('Should block an app', async () => {
     expect(config.blocklist).toContain(app);
 });
 
-test('Should not block an inexistent app', async () => {
-    jest.spyOn(process, 'exit').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    const app = 'inexistent';
-
-    await blockDistraction(app);
-
-    const config = readConfig();
-    expect(config.blocklist).not.toContain(app);
-});
-
 test('Should unblock a domain', async () => {
     const domain = 'chess.com';
 
@@ -76,4 +66,10 @@ test('Should whitelist a domain', async () => {
 
     const config = readConfig();
     expect(config.whitelist).toContain(domain);
+});
+
+test('Should check distraction value', async () => {
+    expect(isValidDistraction('chess.com')).toBe(true);
+    expect(isValidDistraction('chromium')).toBe(true);
+    expect(isValidDistraction('inexistent')).toBe(false);
 });

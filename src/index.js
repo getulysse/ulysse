@@ -5,8 +5,10 @@ import { HELP } from './constants';
 import {
     readConfig,
     enableShieldMode,
+    disableShieldMode,
     blockDistraction,
     unblockDistraction,
+    isValidDistraction,
     whitelistDistraction,
 } from './utils';
 
@@ -32,8 +34,8 @@ export const daemonCmd = async () => {
 };
 
 export const blockCmd = (value) => {
-    if (!value) {
-        console.log('You must provide a value to block.');
+    if (!isValidDistraction(value)) {
+        console.log('You must provide a valid value to block.');
         return;
     }
 
@@ -41,7 +43,15 @@ export const blockCmd = (value) => {
     console.log(`Blocking ${value}`);
 };
 
-export const shieldCmd = () => {
+export const shieldCmd = (value) => {
+    const password = getParam('--password') || getParam('-p');
+
+    if (value === 'off') {
+        disableShieldMode(password);
+        console.log('Shield mode disabled.');
+        return;
+    }
+
     enableShieldMode();
     console.log('Shield mode enabled');
 };
@@ -49,33 +59,35 @@ export const shieldCmd = () => {
 export const unblockCmd = (value) => {
     const config = readConfig();
 
-    if (!value) {
+    if (!isValidDistraction(value)) {
         console.log('You must provide a value to unblock.');
         return;
     }
 
     if (config.shield) {
         console.log('You must disable the shield mode first.');
-    } else {
-        unblockDistraction(value);
-        console.log(`Unblocking ${value}`);
+        return;
     }
+
+    unblockDistraction(value);
+    console.log(`Unblocking ${value}`);
 };
 
 export const whitelistCmd = (value) => {
     const config = readConfig();
 
-    if (!value) {
+    if (!isValidDistraction(value)) {
         console.log('You must provide a value to whitelist.');
         return;
     }
 
     if (config.shield) {
         console.log('You must disable the shield mode first.');
-    } else {
-        whitelistDistraction(value);
-        console.log(`Whitelisting ${value}`);
+        return;
     }
+
+    whitelistDistraction(value);
+    console.log(`Whitelisting ${value}`);
 };
 
 const commands = {

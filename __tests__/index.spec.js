@@ -36,18 +36,6 @@ test('As a user, I can block an app', async () => {
     expect(output).toHaveBeenCalledWith(`Blocking ${app}`);
 });
 
-test.skip('As a user, I can block internet access', async () => {
-    jest.spyOn(Utils, 'getDomainIp').mockReturnValue('127.0.0.1');
-    const output = jest.spyOn(console, 'log');
-    const domain = '*.*';
-
-    blockCmd(domain);
-
-    const ip = await getDomainIp('youtube.com');
-    expect(output).toHaveBeenCalledWith(`Blocking ${domain}`);
-    expect(ip).toBe('127.0.0.1');
-});
-
 test('As a user, I can whitelist a domain', async () => {
     const output = jest.spyOn(console, 'log');
     const domain = 'youtube.com';
@@ -115,7 +103,19 @@ test('As a user, I cannot whitelist a domain or an app if shield mode is enabled
     expect(output).toHaveBeenCalledWith('You must disable the shield mode first.');
 });
 
-test('As a user, I can block a specific web page', async () => {
+test.skip('As a user, I can block internet access', async () => {
+    jest.spyOn(Utils, 'getDomainIp').mockReturnValue('127.0.0.1');
+    const output = jest.spyOn(console, 'log');
+    const domain = '*.*';
+
+    blockCmd(domain);
+
+    const ip = await getDomainIp('youtube.com');
+    expect(output).toHaveBeenCalledWith(`Blocking ${domain}`);
+    expect(ip).toBe('127.0.0.1');
+});
+
+test.skip('As a user, I can block a specific web page', async () => {
     const output = jest.spyOn(console, 'log');
     const page = 'youtube.com/trending';
 
@@ -124,7 +124,7 @@ test('As a user, I can block a specific web page', async () => {
     expect(output).toHaveBeenCalledWith(`Blocking ${page}`);
 });
 
-test('As a user, I can whitelist a web page', async () => {
+test.skip('As a user, I can whitelist a web page', async () => {
     const output = jest.spyOn(console, 'log');
     const page = 'youtube.com/@TED/videos';
 

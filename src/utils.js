@@ -1,6 +1,7 @@
 import fs from 'fs';
 import dns from 'dns';
 import uti from 'util';
+import crypto from 'crypto';
 import { dirname } from 'path';
 import { exec } from 'child_process';
 import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG } from './constants';
@@ -65,20 +66,16 @@ export const getApps = tryCatch(() => {
     return apps;
 });
 
-export const isAppExist = (app) => {
+export const isValidApp = (app) => {
     const paths = process.env.PATH.split(':');
     return paths.some((path) => fs.existsSync(`${path}/${app}`));
 };
 
-export const isDomain = (domain) => /^(\w+\.)+\w+$/.test(domain);
+export const isValidDomain = (domain) => /^(\w+\.)+\w+$/.test(domain);
+
+export const isValidDistraction = (distraction) => isValidDomain(distraction) || isValidApp(distraction);
 
 export const blockDistraction = (distraction) => {
-    if (!isDomain(distraction) && !isAppExist(distraction)) {
-        console.error('You must provide a valid domain or app name.');
-        process.exit(1);
-        return;
-    }
-
     const config = readConfig();
     config.blocklist.push(distraction);
     config.blocklist = [...new Set(config.blocklist)];
@@ -151,16 +148,7 @@ export const unblockRoot = () => {
 export const checkDaemon = () => {
     const apps = getApps();
 
-    const cmds = [
-        'sudo ulysse -d',
-        'sudo ulysse --daemon',
-        'sudo -E ulysse -d',
-        'sudo -E ulysse --daemon',
-        'sudo npm run start -- --daemon',
-        'sudo npx babel-node src/daemon.js',
-        'sudo npx babel-node src/index.js --daemon',
-        'sudo -E npx babel-node src/index.js --daemon',
-    ];
+    const cmds = ['ulysse -d', 'ulysse --daemon'];
 
     const isDaemonRunning = apps.some((p) => cmds.includes(p.cmd));
 
@@ -177,7 +165,41 @@ export const updateResolvConf = () => {
     });
 };
 
+export const generatePassword = (length = 20) => {
+    let password;
+    const wishlist = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@%_+';
+
+    const isValidPassword = (pwd) => /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[@%_+]/.test(pwd);
+
+    do {
+        password = Array.from(crypto.randomBytes(length)).map((byte) => wishlist[byte % wishlist.length]).join('');
+    } while (!isValidPassword(password));
+
+    return password;
+};
+
+export const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
+
 export const enableShieldMode = () => {
     const config = readConfig();
-    editConfig({ ...config, shield: true });
+    const password = generatePassword();
+    const passwordHash = sha256(password);
+    console.log(`Your password is: ${password}`);
+    editConfig({ ...config, passwordHash, shield: true });
+};
+
+export const disableShieldMode = (password) => {
+    if (!password) {
+        console.error('You must provide the password to disable the shield mode.');
+        process.exit(1);
+    }
+
+    const config = readConfig();
+
+    if (sha256(String(password)) !== config.passwordHash) {
+        console.error('Invalid password.');
+        process.exit(1);
+    }
+
+    editConfig({ ...config, shield: false });
 };
