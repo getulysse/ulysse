@@ -142,8 +142,6 @@ export const unblockRoot = () => {
 };
 
 export const isDaemonRunning = () => {
-    if (process.env.NODE_ENV === 'test') return true;
-
     const apps = getApps();
 
     const cmds = ['ulysse -d', 'ulysse --daemon'];

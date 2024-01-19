@@ -36,11 +36,6 @@ export const daemonCmd = async () => {
 };
 
 export const blockCmd = (value) => {
-    if (!isDaemonRunning()) {
-        console.log('You must start the daemon first.');
-        return;
-    }
-
     if (!isValidDistraction(value)) {
         console.log('You must provide a valid value to block.');
         return;
@@ -124,6 +119,11 @@ const processCommand = () => {
     const command = Object.keys(commands).find((c) => process.argv.includes(c) || process.argv.includes(getAlias(c)));
     const alias = getAlias(command);
     const value = getParam(command) || getParam(alias);
+
+    if (!['--help', '--version', '--daemon'].includes(command) && !isDaemonRunning()) {
+        console.log('You must start the daemon first.');
+        return;
+    }
 
     if (command) {
         commands[command](value);
