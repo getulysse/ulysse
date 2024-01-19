@@ -76,7 +76,7 @@ test('As a user, I can enable shield mode to prevent me from unblocking a domain
 
     const config = readConfig();
     expect(config.shield).toBe(true);
-    expect(output).toHaveBeenCalledWith('Shield mode enabled');
+    expect(output).toHaveBeenCalledWith('Shield mode enabled.');
 });
 
 test('As a user, I cannot unblock a domain or an app if shield mode is enabled', async () => {

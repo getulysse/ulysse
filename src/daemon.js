@@ -1,11 +1,15 @@
 import {
-    checkSudo,
+    isSudo,
     blockApps,
     updateResolvConf,
     sendNotification,
 } from './utils';
 
-checkSudo();
+if (!isSudo()) {
+    console.error('You must run this command with sudo.');
+    process.exit(1);
+}
+
 updateResolvConf();
 
 console.log('Starting daemon...');

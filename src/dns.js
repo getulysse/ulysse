@@ -1,12 +1,7 @@
 import dgram from 'dgram';
 import packet from 'native-dns-packet';
 import { readConfig, isDomainBlocked } from './utils';
-import { DNS_SERVER, DNS_PORT } from './constants';
-
-const TYPE = {
-    A: 1,
-    AAAA: 28,
-};
+import { DNS_SERVER, DNS_PORT, DNS_TYPE } from './constants';
 
 const server = dgram.createSocket('udp4');
 
@@ -28,7 +23,7 @@ server.on('message', async (msg, rinfo) => {
         }
 
         responsePacket.answer = responsePacket.answer.map((answer) => {
-            if (answer.type === TYPE.A || answer.type === TYPE.AAAA) {
+            if (answer.type === DNS_TYPE.A || answer.type === DNS_TYPE.AAAA) {
                 return { ...answer, address: '127.0.0.1' };
             }
 

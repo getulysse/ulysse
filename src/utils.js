@@ -1,6 +1,5 @@
 import fs from 'fs';
 import dns from 'dns';
-import uti from 'util';
 import crypto from 'crypto';
 import { dirname } from 'path';
 import { exec } from 'child_process';
@@ -32,13 +31,6 @@ export const readConfig = (path = DEFAULT_CONFIG_PATH) => {
 
 export const editConfig = (config, path = DEFAULT_CONFIG_PATH) => {
     fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
-};
-
-export const execSync = async (command) => {
-    const execAsync = uti.promisify(exec);
-    const { stdout } = await execAsync(command).catch(() => false);
-
-    return stdout;
 };
 
 export const getDomainIp = (domain) => new Promise((resolve) => {
@@ -102,12 +94,7 @@ export const isDomainBlocked = (domain, blocklist = [], whitelist = []) => {
     return isBlocked && !isWhitelisted;
 };
 
-export const checkSudo = () => {
-    if (!process.env.SUDO_USER) {
-        console.error('You must run this command with sudo.');
-        process.exit(1);
-    }
-};
+export const isSudo = () => !!process.env.SUDO_USER;
 
 export const sendNotification = (title, message) => {
     const envs = [
@@ -145,17 +132,12 @@ export const unblockRoot = () => {
     editConfig({ ...config, shield: false });
 };
 
-export const checkDaemon = () => {
+export const isDaemonRunning = () => {
     const apps = getApps();
 
     const cmds = ['ulysse -d', 'ulysse --daemon'];
 
-    const isDaemonRunning = apps.some((p) => cmds.includes(p.cmd));
-
-    if (!isDaemonRunning) {
-        console.error('You must run the daemon first.');
-        process.exit(1);
-    }
+    return apps.some((p) => cmds.includes(p.cmd));
 };
 
 export const updateResolvConf = () => {
@@ -188,18 +170,12 @@ export const enableShieldMode = () => {
     editConfig({ ...config, passwordHash, shield: true });
 };
 
-export const disableShieldMode = (password) => {
-    if (!password) {
-        console.error('You must provide the password to disable the shield mode.');
-        process.exit(1);
-    }
-
+export const isValidPassword = (password) => {
     const config = readConfig();
+    return sha256(String(password)) === config.passwordHash;
+};
 
-    if (sha256(String(password)) !== config.passwordHash) {
-        console.error('Invalid password.');
-        process.exit(1);
-    }
-
+export const disableShieldMode = () => {
+    const config = readConfig();
     editConfig({ ...config, shield: false });
 };

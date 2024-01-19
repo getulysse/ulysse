@@ -9,6 +9,7 @@ import {
     blockDistraction,
     unblockDistraction,
     isValidDistraction,
+    isValidPassword,
     whitelistDistraction,
 } from './utils';
 
@@ -18,7 +19,7 @@ if (process.env.NODE_ENV === 'test') {
 
 const getParam = (key) => {
     const index = process.argv.indexOf(key);
-    return index !== -1 ? process.argv[index + 1] : null;
+    return index !== -1 ? process.argv[index + 1] : undefined;
 };
 
 export const helpCmd = () => {
@@ -43,17 +44,28 @@ export const blockCmd = (value) => {
     console.log(`Blocking ${value}`);
 };
 
-export const shieldCmd = (value) => {
+export const shieldCmd = (value = 'on') => {
+    const config = readConfig();
     const password = getParam('--password') || getParam('-p');
 
-    if (value === 'off') {
-        disableShieldMode(password);
-        console.log('Shield mode disabled.');
+    if (value === 'on' && config.shield) {
+        console.log('Shield mode is already enabled.');
         return;
     }
 
-    enableShieldMode();
-    console.log('Shield mode enabled');
+    if (value === 'on') {
+        enableShieldMode();
+        console.log('Shield mode enabled.');
+        return;
+    }
+
+    if (!isValidPassword(password)) {
+        console.log('You must provide a valid password to disable the shield mode.');
+        return;
+    }
+
+    disableShieldMode();
+    console.log('Shield mode disabled.');
 };
 
 export const unblockCmd = (value) => {

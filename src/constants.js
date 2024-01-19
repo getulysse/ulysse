@@ -16,6 +16,8 @@ export const DNS_SERVER = process.env.DNS_SERVER || '9.9.9.9';
 
 export const DNS_PORT = process.env.DNS_PORT || 53;
 
+export const DNS_TYPE = { A: 1, AAAA: 28 };
+
 export const HELP = `Usage: ulysse [OPTIONS]
 
   Ulysse: A simple and powerful tool to block your distracting apps and websites.
@@ -30,7 +32,6 @@ Options:
                              'ulysse -b example.com -t 30m/day' (block with a daily limit)
                              'ulysse -b example.com -t 10m' (block for a short duration)
                              'ulysse -b MyAppName -t 10am-6pm' (block during specific hours)
-                             'ulysse -b "*.*"' (block all websites)
 
   -u, --unblock TARGET     Unblock a specific website or application.
                            Example: 'ulysse -u example.com' or 'ulysse -u MyAppName'.
