@@ -131,16 +131,6 @@ export const blockApps = () => {
     return [...new Set(blockedApps.map((p) => p.name))];
 };
 
-export const blockRoot = () => {
-    const config = readConfig();
-    editConfig({ ...config, shield: true });
-};
-
-export const unblockRoot = () => {
-    const config = readConfig();
-    editConfig({ ...config, shield: false });
-};
-
 export const isDaemonRunning = () => {
     const apps = getApps();
 
@@ -186,6 +176,5 @@ export const isValidPassword = (password) => {
 };
 
 export const disableShieldMode = (password) => {
-    const config = readConfig();
-    editConfig({ ...config, password, shield: false });
+    editConfig({ password });
 };
