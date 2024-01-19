@@ -1,5 +1,6 @@
 import fs from 'fs';
 import dns from 'dns';
+import uti from 'util';
 import crypto from 'crypto';
 import { dirname } from 'path';
 import { exec } from 'child_process';
@@ -13,12 +14,12 @@ const tryCatch = (fn) => (...args) => {
     }
 };
 
-export const createConfig = (path) => {
+export const createConfig = (path, config = DEFAULT_CONFIG) => {
     const uid = Number(process.env.SUDO_UID || process.getuid());
     const gid = Number(process.env.SUDO_GID || process.getgid());
 
     fs.mkdirSync(dirname(path), { recursive: true });
-    fs.writeFileSync(path, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
+    fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
     fs.chownSync(path, uid, gid);
 };
 
@@ -38,7 +39,7 @@ export const editConfig = (config, path = DEFAULT_CONFIG_PATH) => {
     if (isFileWritable(path)) {
         fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
     } else {
-        fs.writeFileSync(`${path}.tmp`, JSON.stringify(config, null, 4), 'utf8');
+        createConfig(`${path}.tmp`, config);
     }
 };
 
@@ -137,6 +138,13 @@ export const isDaemonRunning = () => {
     const cmds = ['ulysse -d', 'ulysse --daemon'];
 
     return cmds.some((cmd) => apps.some((app) => app.cmd.includes(cmd)));
+};
+
+export const execSync = async (command) => {
+    const execAsync = uti.promisify(exec);
+    const { stdout } = await execAsync(command).catch(() => false);
+
+    return stdout;
 };
 
 export const updateResolvConf = () => {
