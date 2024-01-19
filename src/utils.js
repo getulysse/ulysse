@@ -180,11 +180,12 @@ export const enableShieldMode = () => {
 };
 
 export const isValidPassword = (password) => {
+    if (!password) return false;
     const config = readConfig();
     return sha256(String(password)) === config.passwordHash;
 };
 
-export const disableShieldMode = () => {
+export const disableShieldMode = (password) => {
     const config = readConfig();
-    editConfig({ ...config, shield: false });
+    editConfig({ ...config, password, shield: false });
 };
