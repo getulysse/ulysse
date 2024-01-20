@@ -6,8 +6,7 @@
     "ulysse": "dist/index.js"
   },
   "dependencies": {
-    "native-dns-packet": "^0.1.1",
-    "node-linux": "^0.1.12"
+    "native-dns-packet": "^0.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.23.4",
@@ -28,10 +27,6 @@
   },
   "scripts": {
     "build": "rollup --bundleConfigAsCjs -c",
-    "docker:build": "docker build --no-cache -t registry.ethibox.fr/ulysse .",
-    "docker:push": "docker push registry.ethibox.fr/ulysse",
-    "deploy": "npm run docker:build && npm run docker:push",
-    "postdeploy": "curl -X POST https://portainer.ethibox.fr/api/webhooks/c3b177fd-5019-4db1-8633-16a2db6e30aa",
     "start": "babel-node src/index.js",
     "test": "jest --forceExit -i __tests__/*.spec.js"
   },
