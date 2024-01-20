@@ -1,10 +1,11 @@
 import fs from 'fs';
 import { exec } from 'child_process';
-import { DNS_SERVER, DEFAULT_CONFIG_PATH } from './constants';
+import { DEFAULT_CONFIG_PATH } from './constants';
 import {
     isSudo,
-    execSync,
     blockApps,
+    blockRoot,
+    unblockRoot,
     editConfig,
     readConfig,
     isFileWritable,
@@ -18,32 +19,9 @@ if (!isSudo()) {
     process.exit(1);
 }
 
-updateResolvConf();
+updateResolvConf('127.0.0.1');
 
 console.log('Starting daemon...');
-
-const restoreResolvConf = async () => {
-    await execSync('chattr -i /etc/resolv.conf');
-    fs.writeFileSync('/etc/resolv.conf', `nameserver ${DNS_SERVER}`, 'utf8');
-};
-
-const blockRoot = () => {
-    exec(`chattr +i ${DEFAULT_CONFIG_PATH}`);
-    fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
-    fs.chmodSync('/etc/sudoers.d/ulysse', '0440');
-};
-
-const unblockRoot = () => {
-    const { passwordHash, ...config } = readConfig();
-
-    exec(`chattr -i ${DEFAULT_CONFIG_PATH}`).on('close', () => {
-        editConfig({ ...config, shield: false });
-    });
-
-    if (fs.existsSync('/etc/sudoers.d/ulysse')) {
-        fs.unlinkSync('/etc/sudoers.d/ulysse');
-    }
-};
 
 const handleAppBlocking = () => {
     const blockedApps = blockApps();
@@ -93,13 +71,13 @@ setInterval(async () => {
 
 process.on('SIGINT', async () => {
     await unblockRoot();
-    await restoreResolvConf();
+    await updateResolvConf();
     process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
     await unblockRoot();
-    await restoreResolvConf();
+    await updateResolvConf();
     process.exit(0);
 });
 

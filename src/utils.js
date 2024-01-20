@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import readline from 'readline';
 import { dirname } from 'path';
 import { exec } from 'child_process';
-import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG } from './constants';
+import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG, DNS_SERVER } from './constants';
 
 const tryCatch = (fn) => (...args) => {
     try {
@@ -148,11 +148,10 @@ export const execSync = async (command) => {
     return stdout;
 };
 
-export const updateResolvConf = () => {
-    exec('sudo chattr -i /etc/resolv.conf').on('close', () => {
-        fs.writeFileSync('/etc/resolv.conf', 'nameserver 127.0.0.1', 'utf8');
-        exec('sudo chattr +i /etc/resolv.conf');
-    });
+export const updateResolvConf = async (dnsServer = DNS_SERVER) => {
+    await execSync('chattr -i /etc/resolv.conf');
+    fs.writeFileSync('/etc/resolv.conf', `nameserver ${dnsServer}`, 'utf8');
+    await execSync('chattr +i /etc/resolv.conf');
 };
 
 export const generatePassword = (length = 20) => {
@@ -202,4 +201,22 @@ export const displayPrompt = async (message) => {
             resolve(answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'y');
         });
     });
+};
+
+export const blockRoot = () => {
+    exec(`chattr +i ${DEFAULT_CONFIG_PATH}`);
+    fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
+    fs.chmodSync('/etc/sudoers.d/ulysse', '0440');
+};
+
+export const unblockRoot = () => {
+    const { passwordHash, ...config } = readConfig();
+
+    exec(`chattr -i ${DEFAULT_CONFIG_PATH}`).on('close', () => {
+        editConfig({ ...config, shield: false });
+    });
+
+    if (fs.existsSync('/etc/sudoers.d/ulysse')) {
+        fs.unlinkSync('/etc/sudoers.d/ulysse');
+    }
 };
