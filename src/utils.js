@@ -2,6 +2,7 @@ import fs from 'fs';
 import dns from 'dns';
 import uti from 'util';
 import crypto from 'crypto';
+import readline from 'readline';
 import { dirname } from 'path';
 import { exec } from 'child_process';
 import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG } from './constants';
@@ -185,4 +186,20 @@ export const isValidPassword = (password) => {
 
 export const disableShieldMode = (password) => {
     editConfig({ password });
+};
+
+export const displayPrompt = async (message) => {
+    if (process.env.NODE_ENV === 'test') return true;
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    return new Promise((resolve) => {
+        rl.question(message, (answer) => {
+            rl.close();
+            resolve(answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'y');
+        });
+    });
 };

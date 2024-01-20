@@ -4,6 +4,7 @@ import { version } from '../package.json';
 import { HELP } from './constants';
 import {
     readConfig,
+    displayPrompt,
     enableShieldMode,
     disableShieldMode,
     blockDistraction,
@@ -21,6 +22,30 @@ if (process.env.NODE_ENV === 'test') {
 const getParam = (key) => {
     const index = process.argv.indexOf(key);
     return index !== -1 ? process.argv[index + 1] : undefined;
+};
+
+const handleEnableShieldMode = async (config) => {
+    const message = 'WARNING: This will block root access to your computer. Are you sure? (y/n) ';
+
+    if (config.shield) {
+        console.log('Shield mode is already enabled.');
+        return;
+    }
+
+    if (await displayPrompt(message)) {
+        enableShieldMode();
+        console.log('Shield mode enabled.');
+    }
+};
+
+const handleDisableShieldMode = (password) => {
+    if (!isValidPassword(password)) {
+        console.log('You must provide a valid password to disable the shield mode.');
+        return;
+    }
+
+    disableShieldMode(password);
+    console.log('Shield mode disabled.');
 };
 
 export const helpCmd = () => {
@@ -45,28 +70,15 @@ export const blockCmd = (value) => {
     console.log(`Blocking ${value}`);
 };
 
-export const shieldCmd = (value = 'on') => {
+export const shieldCmd = async (value = 'on') => {
     const config = readConfig();
     const password = getParam('--password') || getParam('-p');
 
-    if (value === 'on' && config.shield) {
-        console.log('Shield mode is already enabled.');
-        return;
-    }
-
     if (value === 'on') {
-        enableShieldMode();
-        console.log('Shield mode enabled.');
-        return;
+        await handleEnableShieldMode(config);
+    } else {
+        await handleDisableShieldMode(password);
     }
-
-    if (!isValidPassword(password)) {
-        console.log('You must provide a valid password to disable the shield mode.');
-        return;
-    }
-
-    disableShieldMode(password);
-    console.log('Shield mode disabled.');
 };
 
 export const unblockCmd = (value) => {

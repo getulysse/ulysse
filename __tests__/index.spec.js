@@ -72,7 +72,7 @@ test('As a user, I can unblock an app', async () => {
 test('As a user, I can enable shield mode to prevent me from unblocking a domain or an app', async () => {
     const output = jest.spyOn(console, 'log');
 
-    shieldCmd();
+    await shieldCmd();
 
     const config = readConfig();
     expect(config.shield).toBe(true);
@@ -84,7 +84,7 @@ test('As a user, I cannot unblock a domain or an app if shield mode is enabled',
     const domain = 'youtube.com';
 
     blockCmd(domain);
-    shieldCmd();
+    await shieldCmd();
     unblockCmd(domain);
 
     const config = readConfig();
@@ -97,7 +97,7 @@ test('As a user, I cannot whitelist a domain or an app if shield mode is enabled
     const output = jest.spyOn(console, 'log');
     const domain = 'youtube.com';
 
-    shieldCmd();
+    await shieldCmd();
     whitelistCmd(domain);
 
     expect(output).toHaveBeenCalledWith('You must disable the shield mode first.');
