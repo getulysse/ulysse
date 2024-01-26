@@ -1,14 +1,10 @@
-import os from 'os';
+export const DEFAULT_CONFIG = process.env.DEFAULT_CONFIG || { shield: false, blocklist: [], whitelist: [] };
 
-export const DEFAULT_CONFIG_FOLDER_PATH = `/home/${process.env.SUDO_USER || os.userInfo().username}/.config/ulysse`;
+export const RESOLV_CONF_PATH = process.env.RESOLV_CONF_PATH || '/etc/resolv.conf';
 
-export const DEFAULT_CONFIG_PATH = `${DEFAULT_CONFIG_FOLDER_PATH}/${process.env.NODE_ENV === 'test' ? 'test' : 'config'}.json`;
+export const CONFIG_PATH = process.env.CONFIG_PATH || '/etc/ulysse/config.json';
 
-export const DEFAULT_CONFIG = {
-    shield: false,
-    blocklist: [],
-    whitelist: [],
-};
+export const SOCKET_PATH = process.env.SOCKET_PATH || '/var/run/ulysse.sock';
 
 export const DNS_SERVER = process.env.DNS_SERVER || '9.9.9.9';
 
@@ -34,7 +30,7 @@ Options:
   -u, --unblock TARGET     Unblock a specific website or application.
                            Example: 'ulysse -u example.com' or 'ulysse -u MyAppName'.
 
-  -w, --whitelist          Whitelist a specific website.
+  -w, --whitelist TARGET   Whitelist a specific website.
                            Example: 'ulysse -w example.com'.
 
   -s, --shield [on|off] [-p, --password VALUE]

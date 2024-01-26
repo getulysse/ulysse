@@ -1,89 +1,117 @@
 import fs from 'fs';
-import { DEFAULT_CONFIG_PATH } from '../src/constants';
+import childProcess from 'child_process';
+import { DEFAULT_CONFIG } from '../src/constants';
 import {
     readConfig,
     editConfig,
-    blockDistraction,
-    unblockDistraction,
+    createConfig,
+    getRunningApps,
     isValidDistraction,
-    whitelistDistraction,
 } from '../src/utils';
 
+const TEST_CONFIG_PATH = '/tmp/config.json';
+
 beforeEach(() => {
-    editConfig({ blocklist: [], whitelist: [], shield: false });
+    jest.spyOn(childProcess, 'execSync').mockImplementation(() => {});
+    if (fs.existsSync(TEST_CONFIG_PATH)) {
+        fs.unlinkSync(TEST_CONFIG_PATH);
+    }
 });
 
-test('Should edit config', async () => {
-    const newConfig = {
-        blocklist: ['youtube.com', 'twitter.com', 'signal-desktop', 'kodi'],
-        whitelist: ['spotify.com'],
-    };
+test('Should create a config file', async () => {
+    const config = { blocklist: [], whitelist: [] };
 
-    editConfig(newConfig);
+    createConfig(config, TEST_CONFIG_PATH);
 
-    const config = readConfig();
-    expect(config).toEqual(expect.objectContaining(newConfig));
+    expect(fs.existsSync(TEST_CONFIG_PATH)).toBe(true);
+    expect(fs.readFileSync(TEST_CONFIG_PATH, 'utf8')).toBe(JSON.stringify(config, null, 4));
 });
 
-test.skip('Should edit config with a .tmp extension if not writable', async () => {
-    const newConfig = {
-        blocklist: ['youtube.com', 'twitter.com', 'signal-desktop', 'kodi'],
-        whitelist: ['spotify.com'],
-    };
+test('Should read config file', async () => {
+    createConfig({ blocklist: [], whitelist: [] }, TEST_CONFIG_PATH);
 
-    editConfig(newConfig);
+    const config = readConfig(TEST_CONFIG_PATH);
 
-    const configTmp = JSON.parse(fs.readFileSync(`${DEFAULT_CONFIG_PATH}.tmp`, 'utf8'));
-    expect(configTmp).toEqual(expect.objectContaining(newConfig));
-});
-
-test('Should block a domain', async () => {
-    const domain = 'chess.com';
-
-    await blockDistraction(domain);
-
-    const config = readConfig();
-    expect(config.blocklist).toContain(domain);
-});
-
-test('Should block an app', async () => {
-    const app = 'chromium';
-
-    await blockDistraction(app);
-
-    const config = readConfig();
-    expect(config.blocklist).toContain(app);
-});
-
-test('Should unblock a domain', async () => {
-    const domain = 'chess.com';
-
-    await unblockDistraction(domain);
-
-    const config = readConfig();
-    expect(config.blocklist).not.toContain(domain);
-});
-
-test('Should unblock an app', async () => {
-    const app = 'chromium';
-
-    await unblockDistraction(app);
-
-    const config = readConfig();
-    expect(config.blocklist).not.toContain(app);
-});
-
-test('Should whitelist a domain', async () => {
-    const domain = 'chess.com';
-
-    await whitelistDistraction(domain);
-
-    const config = readConfig();
-    expect(config.whitelist).toContain(domain);
+    expect(config).toEqual({ blocklist: [], whitelist: [] });
 });
 
 test('Should check distraction value', async () => {
     expect(isValidDistraction('chess.com')).toBe(true);
     expect(isValidDistraction('chromium')).toBe(true);
     expect(isValidDistraction('inexistent')).toBe(false);
+});
+
+test('Should add a distraction to blocklist', async () => {
+    editConfig({ ...DEFAULT_CONFIG, blocklist: ['chess.com'] }, TEST_CONFIG_PATH);
+
+    const config = readConfig(TEST_CONFIG_PATH);
+    expect(config.blocklist).toEqual(expect.arrayContaining(['chess.com']));
+});
+
+test('Should remove a distraction from blocklist', async () => {
+    createConfig({ ...DEFAULT_CONFIG, blocklist: ['chess.com'] }, TEST_CONFIG_PATH);
+
+    editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
+
+    const config = readConfig(TEST_CONFIG_PATH);
+    expect(config.blocklist).toEqual(expect.not.arrayContaining(['chess.com']));
+});
+
+test('Should not remove a distraction from blocklist if shield mode is enabled', async () => {
+    createConfig({ ...DEFAULT_CONFIG, blocklist: ['chess.com'], shield: true }, TEST_CONFIG_PATH);
+
+    editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
+
+    const config = readConfig(TEST_CONFIG_PATH);
+    expect(config.shield).toBe(true);
+    expect(config.blocklist).toEqual(expect.arrayContaining(['chess.com']));
+});
+
+test('Should not whitelist a distraction if shield mode is enabled', async () => {
+    createConfig({ ...DEFAULT_CONFIG, shield: true }, TEST_CONFIG_PATH);
+    const newConfig = { whitelist: ['chess.com'] };
+
+    editConfig(newConfig, TEST_CONFIG_PATH);
+
+    const config = readConfig(TEST_CONFIG_PATH);
+    expect(config.shield).toBe(true);
+    expect(config.whitelist).toEqual(expect.not.arrayContaining(['chess.com']));
+});
+
+test('Should enable shield mode', async () => {
+    const newConfig = { shield: true, password: 'ulysse' };
+
+    editConfig(newConfig, TEST_CONFIG_PATH);
+
+    const config = readConfig(TEST_CONFIG_PATH);
+    expect(config.shield).toBe(true);
+    expect(config.passwordHash).toBeDefined();
+});
+
+test('Should disable shield mode', async () => {
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    createConfig({ ...DEFAULT_CONFIG, passwordHash, shield: true }, TEST_CONFIG_PATH);
+    const newConfig = { shield: false, password: 'ulysse' };
+
+    editConfig(newConfig, TEST_CONFIG_PATH);
+
+    const config = readConfig(TEST_CONFIG_PATH);
+    expect(config.shield).toBe(false);
+});
+
+test('Should not disable shield mode if password is wrong', async () => {
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    createConfig({ ...DEFAULT_CONFIG, passwordHash, shield: true }, TEST_CONFIG_PATH);
+    const newConfig = { shield: false, password: 'badpassword' };
+
+    editConfig(newConfig, TEST_CONFIG_PATH);
+
+    const config = readConfig(TEST_CONFIG_PATH);
+    expect(config.shield).toBe(true);
+});
+
+test('Should get all running apps', async () => {
+    const apps = getRunningApps();
+
+    expect(JSON.stringify(apps)).toContain('node');
 });

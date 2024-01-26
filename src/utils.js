@@ -1,57 +1,107 @@
 import fs from 'fs';
-import dns from 'dns';
-import uti from 'util';
+import net from 'net';
 import crypto from 'crypto';
 import readline from 'readline';
 import { dirname } from 'path';
-import { exec } from 'child_process';
-import { DEFAULT_CONFIG_PATH, DEFAULT_CONFIG, DNS_SERVER } from './constants';
+import { exec, execSync } from 'child_process';
+import {
+    CONFIG_PATH,
+    RESOLV_CONF_PATH,
+    DEFAULT_CONFIG,
+    DNS_SERVER,
+    SOCKET_PATH,
+} from './constants';
 
-const tryCatch = (fn) => (...args) => {
+const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
     try {
         return fn(...args);
     } catch (error) {
-        return false;
+        if (retry <= 3) {
+            return tryCatch(fn, fallback, retry + 1)(...args);
+        }
+
+        return fallback;
     }
 };
 
-export const createConfig = (path, config = DEFAULT_CONFIG) => {
-    const uid = Number(process.env.SUDO_UID || process.getuid());
-    const gid = Number(process.env.SUDO_GID || process.getgid());
-
+export const createConfig = (config, path = CONFIG_PATH) => {
     fs.mkdirSync(dirname(path), { recursive: true });
     fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
-    fs.chownSync(path, uid, gid);
 };
 
-export const readConfig = (path = DEFAULT_CONFIG_PATH) => {
-    if (!fs.existsSync(path)) createConfig(path);
-    const config = JSON.parse(fs.readFileSync(path, 'utf8'));
-
-    return config;
+export const readConfig = (path = CONFIG_PATH) => {
+    if (!fs.existsSync(path)) createConfig(DEFAULT_CONFIG, path);
+    return JSON.parse(fs.readFileSync(path, 'utf8'));
 };
 
-export const isFileWritable = tryCatch((path) => {
-    fs.accessSync(path, fs.constants.W_OK);
-    return true;
-});
+export const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
 
-export const editConfig = (config, path = DEFAULT_CONFIG_PATH) => {
-    if (isFileWritable(path)) {
-        fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
+export const isValidPassword = (password, path = CONFIG_PATH) => {
+    if (!password) return false;
+    const { passwordHash } = readConfig(path);
+    const sha256sum = sha256(String(password));
+    return sha256sum === passwordHash;
+};
+
+export const sendDataToSocket = (data) => {
+    const client = net.createConnection(SOCKET_PATH);
+
+    if (typeof data === 'object') {
+        client.write(JSON.stringify(data));
     } else {
-        createConfig(`${path}.tmp`, config);
+        client.write(data);
+    }
+
+    client.end();
+};
+
+export const blockRoot = () => {
+    if (process.env.NODE_ENV === 'test') return;
+    fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
+    fs.chmodSync('/etc/sudoers.d/ulysse', '0440');
+};
+
+export const unblockRoot = () => {
+    if (fs.existsSync('/etc/sudoers.d/ulysse')) {
+        fs.unlinkSync('/etc/sudoers.d/ulysse');
     }
 };
 
-export const getDomainIp = (domain) => new Promise((resolve) => {
-    dns.lookup(domain, { family: 4 }, (error, ip) => {
-        if (error) resolve(false);
-        resolve(ip);
-    });
-});
+export const editConfig = async (config, path = CONFIG_PATH) => {
+    const currentConfig = readConfig(path);
+    const { blocklist = [], whitelist = [], password } = config;
 
-export const getApps = tryCatch(() => {
+    const newBlocklist = [...new Set([...currentConfig.blocklist, ...blocklist])];
+    const newWhitelist = [...new Set([...currentConfig.whitelist, ...whitelist])];
+
+    const newConfig = {
+        ...currentConfig,
+        blocklist: newBlocklist,
+        whitelist: currentConfig.shield ? currentConfig.whitelist : newWhitelist,
+    };
+
+    if (!currentConfig.shield) {
+        newConfig.blocklist = blocklist;
+    }
+
+    if (isValidPassword(password, path)) {
+        unblockRoot();
+        newConfig.shield = false;
+        delete newConfig.passwordHash;
+    }
+
+    if (config.shield && password) {
+        blockRoot();
+        newConfig.shield = true;
+        newConfig.passwordHash = sha256(password);
+    }
+
+    execSync(`chattr -i ${path}`);
+    fs.writeFileSync(path, JSON.stringify(newConfig, null, 4), 'utf8');
+    execSync(`chattr +i ${path}`);
+};
+
+export const getRunningApps = tryCatch(() => {
     const folders = fs.readdirSync('/proc').filter((f) => !Number.isNaN(Number(f)));
 
     let apps = folders.map((folder) => {
@@ -67,7 +117,7 @@ export const getApps = tryCatch(() => {
     apps = apps.filter((p) => p.name);
 
     return apps;
-});
+}, []);
 
 export const isValidApp = (app) => {
     const paths = process.env.PATH.split(':');
@@ -82,20 +132,20 @@ export const blockDistraction = (distraction) => {
     const config = readConfig();
     config.blocklist.push(distraction);
     config.blocklist = [...new Set(config.blocklist)];
-    editConfig(config);
+    sendDataToSocket(config);
 };
 
 export const unblockDistraction = (distraction) => {
     const config = readConfig();
     config.blocklist = config.blocklist.filter((d) => d !== distraction);
-    editConfig(config);
+    sendDataToSocket(config);
 };
 
 export const whitelistDistraction = (distraction) => {
     const config = readConfig();
     config.whitelist.push(distraction);
     config.whitelist = [...new Set(config.whitelist)];
-    editConfig(config);
+    sendDataToSocket(config);
 };
 
 export const isDomainBlocked = (domain, blocklist = [], whitelist = []) => {
@@ -120,9 +170,11 @@ export const sendNotification = (title, message) => {
 export const blockApps = () => {
     const { blocklist } = readConfig();
 
-    const apps = getApps() || [];
+    const apps = getRunningApps();
 
-    const blockedApps = apps.filter((p) => blocklist?.includes(p.cmd) || blocklist?.includes(p.name));
+    const blockedApps = apps
+        .filter((a) => blocklist?.includes(a.cmd) || blocklist?.includes(a.name))
+        .map((p) => ({ ...p, name: blocklist.find((b) => b === p.cmd || b === p.name) }));
 
     if (!blockedApps.length) return [];
 
@@ -134,57 +186,43 @@ export const blockApps = () => {
 };
 
 export const isDaemonRunning = () => {
-    const apps = getApps();
+    const apps = getRunningApps();
 
     const cmds = ['ulysse -d', 'ulysse --daemon'];
 
     return cmds.some((cmd) => apps.some((app) => app.cmd.includes(cmd)));
 };
 
-export const execSync = async (command) => {
-    const execAsync = uti.promisify(exec);
-    const { stdout } = await execAsync(command).catch(() => false);
-
-    return stdout;
-};
-
-export const updateResolvConf = async (dnsServer = DNS_SERVER) => {
-    await execSync('chattr -i /etc/resolv.conf');
-    fs.writeFileSync('/etc/resolv.conf', `nameserver ${dnsServer}`, 'utf8');
-    await execSync('chattr +i /etc/resolv.conf');
+export const updateResolvConf = (dnsServer = DNS_SERVER) => {
+    execSync(`chattr -i ${RESOLV_CONF_PATH}`);
+    fs.writeFileSync(RESOLV_CONF_PATH, `nameserver ${dnsServer}`, 'utf8');
+    execSync(`chattr +i ${RESOLV_CONF_PATH}`);
 };
 
 export const generatePassword = (length = 20) => {
     let password;
-    const wishlist = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@%_+';
 
-    const isValidPassword = (pwd) => /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[@%_+]/.test(pwd);
+    const wishlist = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@%_+';
+    const checkPassword = (pwd) => /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[@%_+]/.test(pwd);
 
     do {
         password = Array.from(crypto.randomBytes(length)).map((byte) => wishlist[byte % wishlist.length]).join('');
-    } while (!isValidPassword(password));
+    } while (!checkPassword(password));
 
     return password;
 };
-
-export const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
 
 export const enableShieldMode = () => {
     const config = readConfig();
     const password = generatePassword();
     const passwordHash = sha256(password);
     console.log(`Your password is: ${password}`);
-    editConfig({ ...config, passwordHash, shield: true });
-};
-
-export const isValidPassword = (password) => {
-    if (!password) return false;
-    const config = readConfig();
-    return sha256(String(password)) === config.passwordHash;
+    sendDataToSocket({ ...config, passwordHash, password, shield: true });
 };
 
 export const disableShieldMode = (password) => {
-    editConfig({ password });
+    const config = readConfig();
+    sendDataToSocket({ ...config, password, shield: false });
 };
 
 export const displayPrompt = async (message) => {
@@ -203,20 +241,11 @@ export const displayPrompt = async (message) => {
     });
 };
 
-export const blockRoot = () => {
-    exec(`chattr +i ${DEFAULT_CONFIG_PATH}`);
-    fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
-    fs.chmodSync('/etc/sudoers.d/ulysse', '0440');
+export const getParam = (key) => {
+    const index = process.argv.indexOf(key);
+    return index !== -1 ? process.argv[index + 1] : undefined;
 };
 
-export const unblockRoot = () => {
-    const { passwordHash, ...config } = readConfig();
+export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
 
-    exec(`chattr -i ${DEFAULT_CONFIG_PATH}`).on('close', () => {
-        editConfig({ ...config, shield: false });
-    });
-
-    if (fs.existsSync('/etc/sudoers.d/ulysse')) {
-        fs.unlinkSync('/etc/sudoers.d/ulysse');
-    }
-};
+export const isValidConfig = () => true;
