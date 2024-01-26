@@ -4,18 +4,22 @@ WORKDIR /app
 
 COPY . /app
 
-RUN yarn install --prod --ignore-optional
+RUN yarn install
 
-RUN cp /app/dist/index.js /app/dist/ulysse
+RUN yarn build
+
+RUN rm -rf node_modules
+
+RUN yarn install --prod --ignore-optional
 
 FROM gcr.io/distroless/nodejs:18
 
 WORKDIR /app
 
-COPY --from=build /app/dist /app/
+COPY --from=build /app /app
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["ulysse"]
+CMD ["dist/index.js", "--server"]
