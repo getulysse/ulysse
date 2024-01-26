@@ -99,6 +99,8 @@ export const editConfig = async (config, path = CONFIG_PATH) => {
     execSync(`chattr -i ${path}`);
     fs.writeFileSync(path, JSON.stringify(newConfig, null, 4), 'utf8');
     execSync(`chattr +i ${path}`);
+
+    return newConfig;
 };
 
 export const getRunningApps = tryCatch(() => {

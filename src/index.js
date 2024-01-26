@@ -33,9 +33,10 @@ const processCommand = () => {
 
     if (command) {
         commands[command](value);
-    } else {
-        helpCmd();
+        return;
     }
+
+    helpCmd();
 };
 
 processCommand();
