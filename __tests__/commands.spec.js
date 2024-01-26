@@ -15,15 +15,27 @@ test('As a user, I can display the help', async () => {
 });
 
 test('As a user, I can block a domain', async () => {
+    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => true);
+
     blockCmd('example.com');
 
     expect(console.log).toHaveBeenCalledWith('Blocking example.com');
 });
 
 test('As a user, I can block an app', async () => {
+    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => true);
+
     blockCmd('chromium');
 
     expect(console.log).toHaveBeenCalledWith('Blocking chromium');
+});
+
+test('As a user, I cannot block an invalid distraction', async () => {
+    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => false);
+
+    blockCmd('inexistent');
+
+    expect(console.log).toHaveBeenCalledWith('You must provide a valid distraction.');
 });
 
 test('As a user, I can whitelist a domain', async () => {

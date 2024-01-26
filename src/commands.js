@@ -7,6 +7,7 @@ import {
     disableShieldMode,
     isValidPassword,
     blockDistraction,
+    isValidDistraction,
     unblockDistraction,
     whitelistDistraction,
 } from './utils';
@@ -24,6 +25,11 @@ export const daemonCmd = () => {
 };
 
 export const blockCmd = (value) => {
+    if (!isValidDistraction(value)) {
+        console.log('You must provide a valid distraction.');
+        return;
+    }
+
     blockDistraction(value);
     console.log(`Blocking ${value}`);
 };
