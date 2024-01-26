@@ -30,6 +30,7 @@
     "test": "jest --forceExit -i __tests__/*.spec.js"
   },
   "jest": {
+    "restoreMocks": true,
     "transformIgnorePatterns": [],
     "transform": {
       "\\.js$": [

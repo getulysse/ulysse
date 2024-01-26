@@ -19,8 +19,8 @@ export const versionCmd = () => {
     console.log(packageJson.version);
 };
 
-export const daemonCmd = async () => {
-    await import('./daemon');
+export const daemonCmd = () => {
+    import('./daemon');
 };
 
 export const blockCmd = (value) => {
@@ -28,7 +28,7 @@ export const blockCmd = (value) => {
     console.log(`Blocking ${value}`);
 };
 
-export const shieldCmd = async (value = 'on') => {
+export const shieldCmd = (value = 'on') => {
     const config = readConfig();
     const password = getParam('--password') || getParam('-p');
 
@@ -66,6 +66,13 @@ export const unblockCmd = (value) => {
 };
 
 export const whitelistCmd = (value) => {
+    const config = readConfig();
+
+    if (config?.shield) {
+        console.log('You must disable the shield mode first.');
+        return;
+    }
+
     whitelistDistraction(value);
     console.log(`Whitelisting ${value}`);
 };
