@@ -24,6 +24,10 @@ export const daemonCmd = () => {
     import('./daemon');
 };
 
+export const serverCmd = () => {
+    import('./server');
+};
+
 export const blockCmd = (value) => {
     if (!isValidDistraction(value)) {
         console.log('You must provide a valid distraction.');

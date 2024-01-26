@@ -10,6 +10,10 @@ export const DNS_SERVER = process.env.DNS_SERVER || '9.9.9.9';
 
 export const DNS_PORT = process.env.DNS_PORT || 53;
 
+export const SERVER_HOST = process.env.SERVER_HOST || 'http://ulysse.localhost';
+
+export const SERVER_PORT = process.env.SERVER_PORT || 3000;
+
 export const DNS_TYPE = { A: 1, AAAA: 28 };
 
 export const HELP = `Usage: ulysse [OPTIONS]

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import net from 'net';
+import { io } from 'socket.io-client';
 import {
     isSudo,
     blockApps,
@@ -8,7 +9,9 @@ import {
     updateResolvConf,
     sendNotification,
 } from './utils';
-import { SOCKET_PATH } from './constants';
+import { SOCKET_PATH, SERVER_HOST } from './constants';
+
+const socket = io(SERVER_HOST);
 
 const handleAppBlocking = () => {
     const blockedApps = blockApps();
@@ -21,8 +24,8 @@ const handleAppBlocking = () => {
 
 const server = net.createServer((connection) => {
     connection.on('data', (data) => {
-        const newConfig = JSON.parse(data.toString());
-        editConfig(newConfig);
+        const config = editConfig(JSON.parse(data));
+        socket.emit('synchronize', config);
     });
 });
 
@@ -56,6 +59,15 @@ server.listen(SOCKET_PATH, () => {
     const uid = Number(process.env.SUDO_UID || process.getuid());
     const gid = Number(process.env.SUDO_GID || process.getgid());
     fs.chownSync(SOCKET_PATH, uid, gid);
+});
+
+socket.on('connect', () => {
+    console.log('Connected to the server');
+});
+
+socket.on('synchronize', async (config) => {
+    console.log('Synchronize...');
+    editConfig(config);
 });
 
 if (process.env.NODE_ENV !== 'test') {

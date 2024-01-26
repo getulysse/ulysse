@@ -67,7 +67,7 @@ export const unblockRoot = () => {
     }
 };
 
-export const editConfig = async (config, path = CONFIG_PATH) => {
+export const editConfig = (config, path = CONFIG_PATH) => {
     const currentConfig = readConfig(path);
     const { blocklist = [], whitelist = [], password } = config;
 

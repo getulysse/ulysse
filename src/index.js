@@ -7,6 +7,7 @@ import {
     daemonCmd,
     blockCmd,
     shieldCmd,
+    serverCmd,
     unblockCmd,
     whitelistCmd,
 } from './commands';
@@ -19,6 +20,7 @@ const commands = {
     '--unblock': unblockCmd,
     '--shield': shieldCmd,
     '--whitelist': whitelistCmd,
+    '--server': serverCmd,
 };
 
 const processCommand = () => {
