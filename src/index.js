@@ -28,7 +28,7 @@ const processCommand = () => {
     const alias = getAlias(command);
     const value = getParam(command) || getParam(alias);
 
-    if (!['--help', '--version', '--daemon', undefined].includes(command) && !isDaemonRunning()) {
+    if (!['--help', '--version', '--daemon', '--server', undefined].includes(command) && !isDaemonRunning()) {
         console.log('You must start the daemon first.');
         return;
     }

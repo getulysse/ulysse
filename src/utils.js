@@ -69,7 +69,7 @@ export const unblockRoot = () => {
 
 export const editConfig = (config, path = CONFIG_PATH) => {
     const currentConfig = readConfig(path);
-    const { blocklist = [], whitelist = [], password } = config;
+    const { blocklist = [], whitelist = [], passwordHash, password } = config;
 
     const newBlocklist = [...new Set([...currentConfig.blocklist, ...blocklist])];
     const newWhitelist = [...new Set([...currentConfig.whitelist, ...whitelist])];
@@ -90,10 +90,10 @@ export const editConfig = (config, path = CONFIG_PATH) => {
         delete newConfig.passwordHash;
     }
 
-    if (config.shield && password) {
+    if (config.shield && passwordHash) {
         blockRoot();
         newConfig.shield = true;
-        newConfig.passwordHash = sha256(password);
+        newConfig.passwordHash = passwordHash;
     }
 
     execSync(`chattr -i ${path}`);

@@ -79,13 +79,14 @@ test('Should not whitelist a distraction if shield mode is enabled', async () =>
 });
 
 test('Should enable shield mode', async () => {
-    const newConfig = { shield: true, password: 'ulysse' };
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    const newConfig = { shield: true, passwordHash };
 
     editConfig(newConfig, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(true);
-    expect(config.passwordHash).toBeDefined();
+    expect(config.passwordHash).toBe(passwordHash);
 });
 
 test('Should disable shield mode', async () => {

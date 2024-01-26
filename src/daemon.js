@@ -23,9 +23,11 @@ const handleAppBlocking = () => {
 };
 
 const server = net.createServer((connection) => {
-    connection.on('data', (data) => {
-        const config = editConfig(JSON.parse(data));
-        socket.emit('synchronize', config);
+    connection.on('data', (config) => {
+        const data = JSON.parse(config);
+        const newConfig = editConfig(data);
+        const password = !data.shield ? data?.password : undefined;
+        socket.emit('synchronize', { ...newConfig, password });
     });
 });
 

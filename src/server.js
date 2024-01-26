@@ -1,6 +1,8 @@
 import { Server } from 'socket.io';
 import { SERVER_PORT } from './constants';
 
+console.log('Starting server...');
+
 const io = new Server(SERVER_PORT);
 
 io.on('connection', (socket) => {
