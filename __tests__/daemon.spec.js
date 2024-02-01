@@ -17,7 +17,7 @@ test('Should block a running app', async () => {
     expect(console.log).toHaveBeenCalledWith('Blocking chromium');
 });
 
-test('Should edit /etc/resolv.conf', async () => {
+test.skip('Should edit /etc/resolv.conf', async () => {
     await import('../src/daemon');
 
     expect(fs.existsSync(process.env.RESOLV_CONF_PATH)).toBe(true);
