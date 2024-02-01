@@ -126,7 +126,7 @@ export const isValidApp = (app) => {
     return paths.some((path) => fs.existsSync(`${path}/${app}`));
 };
 
-export const isValidDomain = (domain) => /^(\w+\.)+\w+$/.test(domain);
+export const isValidDomain = (domain) => /^([\w-]+\.)+[\w-]+$/.test(domain);
 
 export const isValidDistraction = (distraction) => isValidDomain(distraction) || isValidApp(distraction);
 
