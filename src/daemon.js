@@ -5,7 +5,6 @@ import {
     isSudo,
     blockApps,
     editConfig,
-    unblockRoot,
     updateResolvConf,
     sendNotification,
 } from './utils';
@@ -32,7 +31,6 @@ const server = net.createServer((connection) => {
 });
 
 const cleanUpAndExit = () => {
-    unblockRoot();
     updateResolvConf();
     process.exit(0);
 };

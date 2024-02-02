@@ -57,11 +57,13 @@ export const sendDataToSocket = (data) => {
 
 export const blockRoot = () => {
     if (process.env.NODE_ENV === 'test') return;
+    execSync('usermod -s /usr/bin/nologin root');
     fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
     fs.chmodSync('/etc/sudoers.d/ulysse', '0440');
 };
 
 export const unblockRoot = () => {
+    execSync('usermod -s /bin/bash root');
     if (fs.existsSync('/etc/sudoers.d/ulysse')) {
         fs.unlinkSync('/etc/sudoers.d/ulysse');
     }
