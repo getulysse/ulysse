@@ -80,6 +80,7 @@ export const editConfig = (config, path = CONFIG_PATH) => {
         ...currentConfig,
         blocklist: newBlocklist,
         whitelist: currentConfig.shield ? currentConfig.whitelist : newWhitelist,
+        date: new Date().toISOString(),
     };
 
     if (!currentConfig.shield) {

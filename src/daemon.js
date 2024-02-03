@@ -4,6 +4,7 @@ import { io } from 'socket.io-client';
 import {
     isSudo,
     blockApps,
+    readConfig,
     editConfig,
     updateResolvConf,
     sendNotification,
@@ -50,6 +51,11 @@ setInterval(() => {
     handleAppBlocking();
 }, 1000);
 
+setInterval(() => {
+    const config = readConfig();
+    socket.emit('synchronize', config);
+}, 60000);
+
 handleAppBlocking();
 
 process.on('SIGINT', cleanUpAndExit);
@@ -65,9 +71,13 @@ socket.on('connect', () => {
     console.log('Connected to the server');
 });
 
-socket.on('synchronize', async (config) => {
-    console.log('Synchronize...');
-    editConfig(config);
+socket.on('synchronize', async (newConfig) => {
+    const currentConfig = readConfig();
+
+    if (new Date(newConfig.date) > new Date(currentConfig.date)) {
+        console.log('Synchronize...');
+        await editConfig(newConfig);
+    }
 });
 
 if (process.env.NODE_ENV !== 'test') {
