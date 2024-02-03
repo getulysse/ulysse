@@ -252,5 +252,3 @@ export const getParam = (key) => {
 };
 
 export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
-
-export const isValidConfig = () => true;

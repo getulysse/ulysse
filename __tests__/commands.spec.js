@@ -73,10 +73,19 @@ test('As a user, I cannot enable shield mode if it is already enabled', async ()
 test('As a user, I can disable shield mode', async () => {
     jest.spyOn(Utils, 'getParam').mockImplementation(() => 'password');
     jest.spyOn(Utils, 'isValidPassword').mockImplementation(() => true);
+    jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: true }));
 
     shieldCmd('off');
 
     expect(console.log).toHaveBeenCalledWith('Shield mode disabled.');
+});
+
+test('As a user, I cannot disable shield mode if it is already disabled', async () => {
+    jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: false }));
+
+    shieldCmd('off');
+
+    expect(console.log).toHaveBeenCalledWith('Shield mode already disabled.');
 });
 
 test('As a user, I cannot unblock a distraction if shield mode is enabled', async () => {

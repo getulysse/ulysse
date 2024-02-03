@@ -38,6 +38,7 @@ export const blockCmd = (value) => {
     console.log(`Blocking ${value}`);
 };
 
+/* eslint-disable-next-line complexity */
 export const shieldCmd = (value = 'on') => {
     const config = readConfig();
     const password = getParam('--password') || getParam('-p');
@@ -53,6 +54,11 @@ export const shieldCmd = (value = 'on') => {
     }
 
     if (value === 'off') {
+        if (!config?.shield) {
+            console.log('Shield mode already disabled.');
+            return;
+        }
+
         if (isValidPassword(password)) {
             disableShieldMode(password);
             console.log('Shield mode disabled.');
