@@ -71,12 +71,12 @@ socket.on('connect', () => {
     console.log('Connected to the server');
 });
 
-socket.on('synchronize', async (newConfig) => {
+socket.on('synchronize', (newConfig) => {
     const currentConfig = readConfig();
 
     if (new Date(newConfig.date) > new Date(currentConfig.date)) {
         console.log('Synchronize...');
-        await editConfig(newConfig);
+        editConfig(newConfig);
     }
 });
 
