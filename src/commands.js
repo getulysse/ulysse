@@ -38,6 +38,30 @@ export const blockCmd = (value) => {
     console.log(`Blocking ${value}`);
 };
 
+export const unblockCmd = (value) => {
+    const config = readConfig();
+
+    if (config?.shield) {
+        console.log('You must disable the shield mode first.');
+        return;
+    }
+
+    unblockDistraction(value);
+    console.log(`Unblocking ${value}`);
+};
+
+export const whitelistCmd = (value) => {
+    const config = readConfig();
+
+    if (config?.shield) {
+        console.log('You must disable the shield mode first.');
+        return;
+    }
+
+    whitelistDistraction(value);
+    console.log(`Whitelisting ${value}`);
+};
+
 /* eslint-disable-next-line complexity */
 export const shieldCmd = (value = 'on') => {
     const config = readConfig();
@@ -67,28 +91,4 @@ export const shieldCmd = (value = 'on') => {
 
         console.log('You must provide a valid password to disable the shield mode.');
     }
-};
-
-export const unblockCmd = (value) => {
-    const config = readConfig();
-
-    if (config?.shield) {
-        console.log('You must disable the shield mode first.');
-        return;
-    }
-
-    unblockDistraction(value);
-    console.log(`Unblocking ${value}`);
-};
-
-export const whitelistCmd = (value) => {
-    const config = readConfig();
-
-    if (config?.shield) {
-        console.log('You must disable the shield mode first.');
-        return;
-    }
-
-    whitelistDistraction(value);
-    console.log(`Whitelisting ${value}`);
 };
