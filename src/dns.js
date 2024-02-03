@@ -1,20 +1,18 @@
 import dgram from 'dgram';
 import packet from 'native-dns-packet';
-import { readConfig, isDomainBlocked } from './utils';
+import { isDistractionBlocked } from './utils';
 import { DNS_SERVER, DNS_PORT, DNS_TYPE } from './constants';
 
 const server = dgram.createSocket('udp4');
 
 server.on('message', async (msg, rinfo) => {
-    const { blocklist, whitelist } = readConfig();
-
     const proxy = dgram.createSocket('udp4');
 
     proxy.on('message', (response) => {
         const responsePacket = packet.parse(response);
         const domain = responsePacket.question?.[0]?.name;
 
-        const isBlocked = isDomainBlocked(domain, blocklist, whitelist);
+        const isBlocked = isDistractionBlocked(domain);
 
         if (!isBlocked || responsePacket.answer.length === 0) {
             server.send(response, rinfo.port, rinfo.address);

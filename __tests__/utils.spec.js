@@ -69,9 +69,8 @@ test('Should not remove a distraction from blocklist if shield mode is enabled',
 
 test('Should not whitelist a distraction if shield mode is enabled', async () => {
     createConfig({ ...DEFAULT_CONFIG, shield: true }, TEST_CONFIG_PATH);
-    const newConfig = { whitelist: ['chess.com'] };
 
-    editConfig(newConfig, TEST_CONFIG_PATH);
+    editConfig({ whitelist: ['chess.com'] }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(true);
@@ -80,9 +79,8 @@ test('Should not whitelist a distraction if shield mode is enabled', async () =>
 
 test('Should enable shield mode', async () => {
     const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
-    const newConfig = { shield: true, passwordHash };
 
-    editConfig(newConfig, TEST_CONFIG_PATH);
+    editConfig({ shield: true, passwordHash }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(true);
@@ -92,9 +90,8 @@ test('Should enable shield mode', async () => {
 test('Should disable shield mode', async () => {
     const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
     createConfig({ ...DEFAULT_CONFIG, passwordHash, shield: true }, TEST_CONFIG_PATH);
-    const newConfig = { shield: false, password: 'ulysse' };
 
-    editConfig(newConfig, TEST_CONFIG_PATH);
+    editConfig({ shield: false, password: 'ulysse' }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(false);
@@ -103,9 +100,8 @@ test('Should disable shield mode', async () => {
 test('Should not disable shield mode if password is wrong', async () => {
     const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
     createConfig({ ...DEFAULT_CONFIG, passwordHash, shield: true }, TEST_CONFIG_PATH);
-    const newConfig = { shield: false, password: 'badpassword' };
 
-    editConfig(newConfig, TEST_CONFIG_PATH);
+    editConfig({ shield: false, password: 'badpassword' }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(true);

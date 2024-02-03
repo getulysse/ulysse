@@ -69,23 +69,21 @@ export const unblockRoot = () => {
     }
 };
 
+export const removeDuplicates = (arr) => [...new Set(arr)];
+
 export const editConfig = (config, path = CONFIG_PATH) => {
     const currentConfig = readConfig(path);
     const { blocklist = [], whitelist = [], passwordHash, password } = config;
 
-    const newBlocklist = [...new Set([...currentConfig.blocklist, ...blocklist])];
-    const newWhitelist = [...new Set([...currentConfig.whitelist, ...whitelist])];
+    const newBlocklist = removeDuplicates([...currentConfig.blocklist, ...blocklist]);
+    const newWhitelist = removeDuplicates([...currentConfig.whitelist, ...whitelist]);
 
     const newConfig = {
         ...currentConfig,
-        blocklist: newBlocklist,
+        blocklist: currentConfig.shield ? newBlocklist : blocklist,
         whitelist: currentConfig.shield ? currentConfig.whitelist : newWhitelist,
         date: new Date().toISOString(),
     };
-
-    if (!currentConfig.shield) {
-        newConfig.blocklist = blocklist;
-    }
 
     if (isValidPassword(password, path)) {
         unblockRoot();
@@ -153,9 +151,11 @@ export const whitelistDistraction = (distraction) => {
     sendDataToSocket(config);
 };
 
-export const isDomainBlocked = (domain, blocklist = [], whitelist = []) => {
-    const isBlocked = blocklist.some((d) => domain.includes(d));
-    const isWhitelisted = whitelist.some((d) => domain.includes(d));
+export const isDistractionBlocked = (distraction) => {
+    const { blocklist = [], whitelist = [] } = readConfig();
+
+    const isBlocked = blocklist.some((d) => distraction.includes(d));
+    const isWhitelisted = whitelist.some((d) => distraction.includes(d));
 
     return isBlocked && !isWhitelisted;
 };
