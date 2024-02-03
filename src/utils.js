@@ -134,7 +134,7 @@ export const isValidDistraction = (distraction) => isValidDomain(distraction) ||
 export const blockDistraction = (distraction) => {
     const config = readConfig();
     config.blocklist.push(distraction);
-    config.blocklist = [...new Set(config.blocklist)];
+    config.blocklist = removeDuplicates(config.blocklist);
     sendDataToSocket(config);
 };
 
@@ -147,7 +147,7 @@ export const unblockDistraction = (distraction) => {
 export const whitelistDistraction = (distraction) => {
     const config = readConfig();
     config.whitelist.push(distraction);
-    config.whitelist = [...new Set(config.whitelist)];
+    config.whitelist = removeDuplicates(config.whitelist);
     sendDataToSocket(config);
 };
 
@@ -187,7 +187,7 @@ export const blockApps = () => {
         exec(`kill -9 ${app.pid}`);
     }
 
-    return [...new Set(blockedApps.map((p) => p.name))];
+    return removeDuplicates(blockedApps.map((p) => p.name));
 };
 
 export const isDaemonRunning = () => {
