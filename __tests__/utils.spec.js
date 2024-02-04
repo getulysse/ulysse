@@ -5,8 +5,11 @@ import {
     readConfig,
     editConfig,
     createConfig,
+    getTimeType,
+    decrementTime,
     getRunningApps,
     isValidDistraction,
+    isDistractionBlocked,
 } from '../src/utils';
 
 const TEST_CONFIG_PATH = '/tmp/config.json';
@@ -36,45 +39,51 @@ test('Should read config file', async () => {
 });
 
 test('Should check distraction value', async () => {
-    expect(isValidDistraction('chess.com')).toBe(true);
-    expect(isValidDistraction('chromium')).toBe(true);
-    expect(isValidDistraction('inexistent')).toBe(false);
+    expect(isValidDistraction({ name: 'chess.com' })).toBe(true);
+    expect(isValidDistraction({ name: 'chromium' })).toBe(true);
+    expect(isValidDistraction({ name: 'chromium', time: 'badtime' })).toBe(false);
+    expect(isValidDistraction({ name: 'chromium', time: '1m' })).toBe(true);
+    expect(isValidDistraction({ name: 'inexistent' })).toBe(false);
 });
 
 test('Should add a distraction to blocklist', async () => {
-    editConfig({ ...DEFAULT_CONFIG, blocklist: ['chess.com'] }, TEST_CONFIG_PATH);
+    const distraction = { name: 'chess.com' };
+    editConfig({ ...DEFAULT_CONFIG, blocklist: [distraction] }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
-    expect(config.blocklist).toEqual(expect.arrayContaining(['chess.com']));
+    expect(config.blocklist).toEqual(expect.arrayContaining([distraction]));
 });
 
 test('Should remove a distraction from blocklist', async () => {
-    createConfig({ ...DEFAULT_CONFIG, blocklist: ['chess.com'] }, TEST_CONFIG_PATH);
+    const distraction = { name: 'chess.com' };
+    createConfig({ ...DEFAULT_CONFIG, blocklist: [distraction] }, TEST_CONFIG_PATH);
 
     editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
-    expect(config.blocklist).toEqual(expect.not.arrayContaining(['chess.com']));
+    expect(config.blocklist).toEqual(expect.arrayContaining([]));
 });
 
 test('Should not remove a distraction from blocklist if shield mode is enabled', async () => {
-    createConfig({ ...DEFAULT_CONFIG, blocklist: ['chess.com'], shield: true }, TEST_CONFIG_PATH);
+    const distraction = { name: 'chess.com' };
+    createConfig({ ...DEFAULT_CONFIG, blocklist: [distraction], shield: true }, TEST_CONFIG_PATH);
 
     editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(true);
-    expect(config.blocklist).toEqual(expect.arrayContaining(['chess.com']));
+    expect(config.blocklist).toEqual(expect.arrayContaining([distraction]));
 });
 
 test('Should not whitelist a distraction if shield mode is enabled', async () => {
+    const distraction = { name: 'chess.com' };
     createConfig({ ...DEFAULT_CONFIG, shield: true }, TEST_CONFIG_PATH);
 
-    editConfig({ whitelist: ['chess.com'] }, TEST_CONFIG_PATH);
+    editConfig({ whitelist: [distraction] }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(true);
-    expect(config.whitelist).toEqual(expect.not.arrayContaining(['chess.com']));
+    expect(config.whitelist).toEqual(expect.arrayContaining([]));
 });
 
 test('Should enable shield mode', async () => {
@@ -111,4 +120,27 @@ test('Should get all running apps', async () => {
     const apps = getRunningApps();
 
     expect(JSON.stringify(apps)).toContain('node');
+});
+
+test('Should decrement time', () => {
+    expect(decrementTime('30m')).toBe('29m');
+    expect(decrementTime('2h')).toBe('1h59m');
+    expect(decrementTime('1h59m')).toBe('1h58m');
+    expect(decrementTime('1d')).toBe('23h59m');
+    expect(decrementTime('1m')).toBe('0m');
+});
+
+test('Should get duration time type', () => {
+    expect(getTimeType('1d')).toBe('duration');
+    expect(getTimeType('30m')).toBe('duration');
+    expect(getTimeType('1h30m')).toBe('duration');
+    expect(getTimeType('10h-18h')).toBe('interval');
+});
+
+test('Should block a distraction with a time-based interval', async () => {
+    const distraction = { name: 'chess.com', time: '0h-23h' };
+
+    const isBlocked = isDistractionBlocked(distraction);
+
+    expect(isBlocked).toBe(true);
 });

@@ -28,17 +28,39 @@ export const serverCmd = () => {
     import('./server');
 };
 
-export const blockCmd = (value) => {
-    if (!isValidDistraction(value)) {
+export const blockCmd = (name) => {
+    const time = getParam('--time') || getParam('-t');
+    const distraction = { name, time };
+
+    if (!isValidDistraction(distraction)) {
         console.log('You must provide a valid distraction.');
         return;
     }
 
-    blockDistraction(value);
-    console.log(`Blocking ${value}`);
+    blockDistraction(distraction);
+    console.log(`Blocking ${name}`);
 };
 
-export const unblockCmd = (value) => {
+export const unblockCmd = (name) => {
+    const time = getParam('--time') || getParam('-t');
+    const distraction = { name, time };
+    const config = readConfig();
+
+    if (!isValidDistraction(distraction)) {
+        console.log('You must provide a valid distraction.');
+        return;
+    }
+
+    if (config?.shield) {
+        console.log('You must disable the shield mode first.');
+        return;
+    }
+
+    unblockDistraction(distraction);
+    console.log(`Unblocking ${name}`);
+};
+
+export const whitelistCmd = (name) => {
     const config = readConfig();
 
     if (config?.shield) {
@@ -46,20 +68,8 @@ export const unblockCmd = (value) => {
         return;
     }
 
-    unblockDistraction(value);
-    console.log(`Unblocking ${value}`);
-};
-
-export const whitelistCmd = (value) => {
-    const config = readConfig();
-
-    if (config?.shield) {
-        console.log('You must disable the shield mode first.');
-        return;
-    }
-
-    whitelistDistraction(value);
-    console.log(`Whitelisting ${value}`);
+    whitelistDistraction({ name });
+    console.log(`Whitelisting ${name}`);
 };
 
 /* eslint-disable-next-line complexity */

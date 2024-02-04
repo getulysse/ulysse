@@ -6,6 +6,8 @@ import {
     blockApps,
     readConfig,
     editConfig,
+    getTimeType,
+    decrementTime,
     updateResolvConf,
     sendNotification,
 } from './utils';
@@ -22,12 +24,28 @@ const handleAppBlocking = () => {
     }
 };
 
+const handleSynchronize = () => {
+    const config = readConfig();
+    socket.emit('synchronize', config);
+};
+
+const handleDecrementBlocklist = () => {
+    const config = readConfig();
+
+    const blocklist = config.blocklist
+        .map((d) => ({ ...d, time: getTimeType(d.time) === 'duration' ? decrementTime(d.time) : d.time }))
+        .filter((d) => d.time !== '0m');
+
+    if (JSON.stringify(blocklist) === JSON.stringify(config.blocklist)) return;
+
+    editConfig({ ...config, blocklist });
+};
+
 const server = net.createServer((connection) => {
-    connection.on('data', (config) => {
-        const data = JSON.parse(config);
-        const newConfig = editConfig(data);
-        const password = !data.shield ? data?.password : undefined;
-        socket.emit('synchronize', { ...newConfig, password });
+    connection.on('data', (data) => {
+        const config = JSON.parse(data);
+        const newConfig = editConfig({ ...config, date: new Date().toISOString() });
+        socket.emit('synchronize', newConfig);
     });
 });
 
@@ -52,8 +70,8 @@ setInterval(() => {
 }, 1000);
 
 setInterval(() => {
-    const config = readConfig();
-    socket.emit('synchronize', config);
+    handleDecrementBlocklist();
+    handleSynchronize();
 }, 60000);
 
 handleAppBlocking();
@@ -75,8 +93,8 @@ socket.on('synchronize', (newConfig) => {
     const currentConfig = readConfig();
 
     if (new Date(newConfig.date) > new Date(currentConfig.date)) {
-        console.log('Synchronize...');
         editConfig(newConfig);
+        console.log('Synchronize...');
     }
 });
 

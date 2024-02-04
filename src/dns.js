@@ -12,9 +12,7 @@ server.on('message', async (msg, rinfo) => {
         const responsePacket = packet.parse(response);
         const domain = responsePacket.question?.[0]?.name;
 
-        const isBlocked = isDistractionBlocked(domain);
-
-        if (!isBlocked || responsePacket.answer.length === 0) {
+        if (!isDistractionBlocked(domain) || responsePacket.answer.length === 0) {
             server.send(response, rinfo.port, rinfo.address);
             proxy.close();
             return;

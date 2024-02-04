@@ -45,6 +45,8 @@ test('As a user, I can whitelist a domain', async () => {
 });
 
 test('As a user, I can unblock a domain', async () => {
+    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => true);
+
     unblockCmd('example.com');
 
     expect(console.log).toHaveBeenCalledWith('Unblocking example.com');
@@ -71,7 +73,7 @@ test('As a user, I cannot enable shield mode if it is already enabled', async ()
 });
 
 test('As a user, I can disable shield mode', async () => {
-    jest.spyOn(Utils, 'getParam').mockImplementation(() => 'password');
+    jest.spyOn(Utils, 'getParam').mockImplementation((param) => (param === '--password' ? 'password' : undefined));
     jest.spyOn(Utils, 'isValidPassword').mockImplementation(() => true);
     jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: true }));
 

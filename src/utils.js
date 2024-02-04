@@ -69,20 +69,24 @@ export const unblockRoot = () => {
     }
 };
 
-export const removeDuplicates = (arr) => [...new Set(arr)];
+export const removeDuplicates = (arr) => {
+    const set = new Set(arr.map((e) => JSON.stringify(e)));
+    return Array.from(set).map((e) => JSON.parse(e));
+};
 
+/* eslint-disable-next-line complexity */
 export const editConfig = (config, path = CONFIG_PATH) => {
     const currentConfig = readConfig(path);
-    const { blocklist = [], whitelist = [], passwordHash, password } = config;
+    const { blocklist = [], whitelist = [], passwordHash, password, date } = config;
 
     const newBlocklist = removeDuplicates([...currentConfig.blocklist, ...blocklist]);
     const newWhitelist = removeDuplicates([...currentConfig.whitelist, ...whitelist]);
 
     const newConfig = {
         ...currentConfig,
+        date: date || new Date().toISOString(),
         blocklist: currentConfig.shield ? newBlocklist : blocklist,
         whitelist: currentConfig.shield ? currentConfig.whitelist : newWhitelist,
-        date: new Date().toISOString(),
     };
 
     if (isValidPassword(password, path)) {
@@ -129,7 +133,25 @@ export const isValidApp = (app) => {
 
 export const isValidDomain = (domain) => /^([\w-]+\.)+[\w-]+$/.test(domain);
 
-export const isValidDistraction = (distraction) => isValidDomain(distraction) || isValidApp(distraction);
+export const getTimeType = (time) => {
+    const durationPattern = /^(\d+d)?(\d+h)?(\d+m)?$/;
+    const intervalPattern = /^\d+h-\d+h$/;
+
+    if (durationPattern.test(time)) return 'duration';
+    if (intervalPattern.test(time)) return 'interval';
+
+    return 'unknown';
+};
+
+const isValidTime = (time) => getTimeType(time) !== 'unknown';
+
+export const isValidDistraction = (distraction) => {
+    const { name, time } = distraction;
+
+    if (time && !isValidTime(time)) return false;
+
+    return isValidDomain(name) || isValidApp(name);
+};
 
 export const blockDistraction = (distraction) => {
     const config = readConfig();
@@ -140,22 +162,32 @@ export const blockDistraction = (distraction) => {
 
 export const unblockDistraction = (distraction) => {
     const config = readConfig();
-    config.blocklist = config.blocklist.filter((d) => d !== distraction);
+    config.blocklist = config.blocklist.filter((d) => JSON.stringify(d) !== JSON.stringify(distraction));
     sendDataToSocket(config);
 };
 
 export const whitelistDistraction = (distraction) => {
     const config = readConfig();
     config.whitelist.push(distraction);
-    config.whitelist = removeDuplicates(config.whitelist);
     sendDataToSocket(config);
 };
 
 export const isDistractionBlocked = (distraction) => {
-    const { blocklist = [], whitelist = [] } = readConfig();
+    const { blocklist, whitelist } = readConfig();
+    const { name, time } = distraction;
 
-    const isBlocked = blocklist.some((d) => distraction.includes(d));
-    const isWhitelisted = whitelist.some((d) => distraction.includes(d));
+    const isBlocked = blocklist.some((d) => d.name === name);
+    const isWhitelisted = whitelist.some((d) => d.name === name);
+
+    if (getTimeType(time) === 'interval') {
+        const date = new Date();
+        const hour = date.getHours();
+
+        const [start, end] = time.split('-').map((t) => parseInt(t, 10));
+        const isBlockedHour = hour >= start && hour < end;
+
+        return isBlockedHour && !isWhitelisted;
+    }
 
     return isBlocked && !isWhitelisted;
 };
@@ -173,11 +205,13 @@ export const sendNotification = (title, message) => {
 };
 
 export const blockApps = () => {
-    const { blocklist } = readConfig();
+    const config = readConfig();
 
-    const apps = getRunningApps();
+    const blocklist = config.blocklist
+        .filter((d) => isDistractionBlocked(d))
+        .map(({ name }) => name);
 
-    const blockedApps = apps
+    const blockedApps = getRunningApps()
         .filter((a) => blocklist?.includes(a.cmd) || blocklist?.includes(a.name))
         .map((p) => ({ ...p, name: blocklist.find((b) => b === p.cmd || b === p.name) }));
 
@@ -252,3 +286,23 @@ export const getParam = (key) => {
 };
 
 export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
+
+/* eslint-disable-next-line complexity */
+export const decrementTime = (time) => {
+    let [hours, minutes] = time.includes('h') ? time.split('h') : [0, time];
+    minutes = minutes.includes('m') ? parseInt(minutes, 10) : (hours = parseInt(hours, 10), 0);
+    if (time.includes('d')) return '23h59m';
+
+    minutes -= 1;
+
+    if (minutes < 0) {
+        hours = hours ? hours - 1 : 23;
+        minutes = 59;
+    }
+
+    if (hours === 0 && minutes === 0) {
+        return '0m';
+    }
+
+    return `${hours ? `${hours}h` : ''}${minutes > 0 ? `${minutes}m` : '0m'}`;
+};
