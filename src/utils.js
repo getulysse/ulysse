@@ -174,10 +174,10 @@ export const whitelistDistraction = (distraction) => {
 
 export const isDistractionBlocked = (distraction) => {
     const { blocklist, whitelist } = readConfig();
-    const { name, time } = distraction;
+    const time = blocklist.find((d) => d.name === distraction)?.time;
 
-    const isBlocked = blocklist.some((d) => d.name === name);
-    const isWhitelisted = whitelist.some((d) => d.name === name);
+    const isBlocked = blocklist.some((d) => d.name === distraction);
+    const isWhitelisted = whitelist.some((d) => d.name === distraction);
 
     if (getTimeType(time) === 'interval') {
         const date = new Date();
@@ -208,7 +208,7 @@ export const blockApps = () => {
     const config = readConfig();
 
     const blocklist = config.blocklist
-        .filter((d) => isDistractionBlocked(d))
+        .filter((d) => isDistractionBlocked(d.name))
         .map(({ name }) => name);
 
     const blockedApps = getRunningApps()

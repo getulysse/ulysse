@@ -139,8 +139,9 @@ test('Should get duration time type', () => {
 
 test('Should block a distraction with a time-based interval', async () => {
     const distraction = { name: 'chess.com', time: '0h-23h' };
+    createConfig({ blocklist: [distraction], whitelist: [] }, TEST_CONFIG_PATH);
 
-    const isBlocked = isDistractionBlocked(distraction);
+    const isBlocked = isDistractionBlocked(distraction.name);
 
     expect(isBlocked).toBe(true);
 });
