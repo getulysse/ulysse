@@ -172,11 +172,13 @@ export const whitelistDistraction = (distraction) => {
     sendDataToSocket(config);
 };
 
+export const rootDomain = (domain) => domain.split('.').slice(-2).join('.');
+
 export const isDistractionBlocked = (distraction) => {
     const { blocklist, whitelist } = readConfig();
     const time = blocklist.find((d) => d.name === distraction)?.time;
 
-    const isBlocked = blocklist.some((d) => d.name === distraction);
+    const isBlocked = blocklist.some((d) => d.name === rootDomain(distraction));
     const isWhitelisted = whitelist.some((d) => d.name === distraction);
 
     if (getTimeType(time) === 'interval') {
