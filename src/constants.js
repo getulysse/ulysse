@@ -14,8 +14,6 @@ export const SERVER_HOST = process.env.SERVER_HOST || 'http://ulysse.localhost';
 
 export const SERVER_PORT = process.env.SERVER_PORT || 3000;
 
-export const DNS_TYPE = { A: 1, AAAA: 28 };
-
 export const HELP = `Usage: ulysse [OPTIONS]
 
   Ulysse: A simple and powerful tool to block your distracting apps and websites.

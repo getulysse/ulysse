@@ -1,7 +1,7 @@
 import dgram from 'dgram';
-import packet from 'native-dns-packet';
+import packet from 'dns-packet';
 import { isDistractionBlocked } from './utils';
-import { DNS_SERVER, DNS_PORT, DNS_TYPE } from './constants';
+import { DNS_SERVER, DNS_PORT } from './constants';
 
 const server = dgram.createSocket('udp4');
 
@@ -9,26 +9,29 @@ server.on('message', async (msg, rinfo) => {
     const proxy = dgram.createSocket('udp4');
 
     proxy.on('message', (response) => {
-        const responsePacket = packet.parse(response);
-        const domain = responsePacket.question?.[0]?.name;
+        const responsePacket = packet.decode(response);
+        const domain = responsePacket.questions?.[0]?.name;
 
-        if (!isDistractionBlocked(domain) || responsePacket.answer.length === 0) {
+        if (!isDistractionBlocked(domain) || responsePacket.answers.length === 0) {
             server.send(response, rinfo.port, rinfo.address);
             proxy.close();
             return;
         }
 
-        responsePacket.answer = responsePacket.answer.map((answer) => {
-            if (answer.type === DNS_TYPE.A || answer.type === DNS_TYPE.AAAA) {
-                return { ...answer, address: '127.0.0.1' };
+        responsePacket.answers = responsePacket.answers.map((answer) => {
+            if (answer.type === 'A') {
+                return { ...answer, data: '127.0.0.1' };
+            }
+
+            if (answer.type === 'AAAA') {
+                return { ...answer, data: '::1' };
             }
 
             return answer;
         });
 
-        const buffer = Buffer.alloc(4096);
-        packet.write(buffer, responsePacket);
-        server.send(buffer, 0, buffer.length, rinfo.port, rinfo.address);
+        const newPacket = packet.encode(responsePacket);
+        server.send(newPacket, rinfo.port, rinfo.address);
         proxy.close();
     });
 
