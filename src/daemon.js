@@ -44,8 +44,9 @@ const handleDecrementBlocklist = () => {
 const server = net.createServer((connection) => {
     connection.on('data', (data) => {
         const config = JSON.parse(data);
+        const password = !config.shield ? config?.password : undefined;
         const newConfig = editConfig({ ...config, date: new Date().toISOString() });
-        socket.emit('synchronize', newConfig);
+        socket.emit('synchronize', { ...newConfig, password });
     });
 });
 
