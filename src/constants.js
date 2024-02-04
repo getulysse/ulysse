@@ -27,9 +27,9 @@ Options:
                            or a quick block duration.
                            Examples: 
                              'ulysse -b example.com' (block indefinitely)
-                             'ulysse -b example.com -t 30m/day' (block with a daily limit)
                              'ulysse -b example.com -t 10m' (block for a short duration)
-                             'ulysse -b MyAppName -t 10h-18h' (block during specific hours)
+                             'ulysse -b example.com -t 10h-18h' (block during specific hours)
+                             'ulysse -b MyAppName -t 30m/day' (block with a daily limit)
 
   -u, --unblock TARGET     Unblock a specific website or application.
                            Example: 'ulysse -u example.com' or 'ulysse -u MyAppName'.
