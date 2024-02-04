@@ -19,12 +19,8 @@ server.on('message', async (msg, rinfo) => {
         }
 
         responsePacket.answers = responsePacket.answers.map((answer) => {
-            if (answer.type === 'A') {
-                return { ...answer, data: '127.0.0.1' };
-            }
-
-            if (answer.type === 'AAAA') {
-                return { ...answer, data: '::1' };
+            if (answer.type === 'A' || answer.type === 'AAAA') {
+                return { ...answer, data: answer.type === 'A' ? '127.0.0.1' : '::1' };
             }
 
             return answer;
