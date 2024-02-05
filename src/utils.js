@@ -176,20 +176,22 @@ export const rootDomain = (domain) => domain.split('.').slice(-2).join('.');
 
 export const isDistractionBlocked = (distraction) => {
     const { blocklist, whitelist } = readConfig();
-    const time = blocklist.find((d) => d.name === distraction)?.time;
+    const time = blocklist.find((d) => d.name === rootDomain(distraction))?.time;
 
-    const isBlocked = blocklist.some((d) => d.name === rootDomain(distraction));
-    const isWhitelisted = whitelist.some((d) => d.name === distraction);
+    const isWhitelisted = whitelist.some((d) => d.name === rootDomain(distraction));
+    const isBlocked = blocklist.some((d) => {
+        if (getTimeType(time) === 'interval') {
+            const date = new Date();
+            const hour = date.getHours();
 
-    if (getTimeType(time) === 'interval') {
-        const date = new Date();
-        const hour = date.getHours();
+            const [start, end] = time.split('-').map((t) => parseInt(t, 10));
+            const isBlockedHour = hour >= start && hour < end;
 
-        const [start, end] = time.split('-').map((t) => parseInt(t, 10));
-        const isBlockedHour = hour >= start && hour < end;
+            return isBlockedHour;
+        }
 
-        return isBlockedHour && !isWhitelisted;
-    }
+        return d.name === rootDomain(distraction);
+    });
 
     return isBlocked && !isWhitelisted;
 };
@@ -210,6 +212,7 @@ export const blockApps = () => {
     const config = readConfig();
 
     const blocklist = config.blocklist
+        .filter((d) => !isValidDomain(d.name))
         .filter((d) => isDistractionBlocked(d.name))
         .map(({ name }) => name);
 
