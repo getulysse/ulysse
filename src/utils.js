@@ -117,8 +117,9 @@ export const getRunningApps = tryCatch(() => {
         const status = fs.readFileSync(`/proc/${folder}/status`, 'utf8');
         const name = status.split('\n')[0].split(':').pop().trim();
         const cmd = fs.readFileSync(`/proc/${folder}/cmdline`, 'utf8').split('\u0000').join(' ').trim();
+        const bin = cmd.split(' ').shift();
 
-        return { pid: folder, cmd, name };
+        return { pid: folder, cmd, name, bin };
     });
 
     apps = apps.filter((p) => p.name);
@@ -128,6 +129,9 @@ export const getRunningApps = tryCatch(() => {
 
 export const isValidApp = (app) => {
     const paths = process.env.PATH.split(':');
+
+    if (fs.existsSync(app)) return true;
+
     return paths.some((path) => fs.existsSync(`${path}/${app}`));
 };
 
@@ -212,12 +216,12 @@ export const blockApps = () => {
     const config = readConfig();
 
     const blocklist = config.blocklist
-        .filter((d) => !isValidDomain(d.name))
+        .filter((d) => isValidApp(d.name))
         .filter((d) => isDistractionBlocked(d.name))
         .map(({ name }) => name);
 
     const blockedApps = getRunningApps()
-        .filter((a) => blocklist?.includes(a.cmd) || blocklist?.includes(a.name))
+        .filter((a) => blocklist?.includes(a.cmd) || blocklist?.includes(a.bin) || blocklist?.includes(a.name))
         .map((p) => ({ ...p, name: blocklist.find((b) => b === p.cmd || b === p.name) }));
 
     if (!blockedApps.length) return [];
