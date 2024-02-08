@@ -55,10 +55,27 @@ export const sendDataToSocket = (data) => {
     client.end();
 };
 
+export const isValidApp = (app) => {
+    const paths = process.env.PATH.split(':');
+
+    if (fs.existsSync(app)) return true;
+
+    return paths.some((path) => fs.existsSync(`${path}/${app}`));
+};
+
 export const blockRoot = () => {
     if (process.env.NODE_ENV === 'test') return;
     execSync('usermod -s /usr/sbin/nologin root');
     fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
+
+    const { whitelist } = readConfig();
+
+    for (const w of whitelist) {
+        if (isValidApp(w.name)) {
+            fs.appendFileSync('/etc/sudoers.d/ulysse', `\n${process.env.SUDO_USER} ALL=(ALL) ${w.name}`, 'utf8');
+        }
+    }
+
     fs.chmodSync('/etc/sudoers.d/ulysse', '0440');
 };
 
@@ -126,14 +143,6 @@ export const getRunningApps = tryCatch(() => {
 
     return apps;
 }, []);
-
-export const isValidApp = (app) => {
-    const paths = process.env.PATH.split(':');
-
-    if (fs.existsSync(app)) return true;
-
-    return paths.some((path) => fs.existsSync(`${path}/${app}`));
-};
 
 export const isValidDomain = (domain) => /^([\w-]+\.)+[\w-]+$/.test(domain);
 
