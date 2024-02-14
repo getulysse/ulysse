@@ -1,10 +1,36 @@
 {
-  "name": "@johackim/ulysse",
+  "name": "ulysse",
+  "author": "johackim",
+  "description": "Simple CLI tool for blocking your distracting apps and websites",
+  "homepage": "https://github.com/johackim/ulysse",
+  "license": "GPL-3.0",
   "main": "dist/index.js",
   "version": "0.1.0",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "linux"
+  ],
   "bin": {
     "ulysse": "dist/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/johackim/ulysse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/johackim/ulysse/issues"
+  },
+  "keywords": [
+    "cli",
+    "linux",
+    "ulysse",
+    "blocker",
+    "deepwork",
+    "distraction",
+    "productivity"
+  ],
   "dependencies": {
     "dns-packet": "^5.6.1",
     "socket.io": "^4.7.4",
@@ -26,6 +52,8 @@
     "rollup": "^4.9.6"
   },
   "scripts": {
+    "prepublishOnly": "npm run build",
+    "prebuild": "rm -rf dist",
     "build": "rollup --bundleConfigAsCjs -c",
     "start": "babel-node src/index.js",
     "test": "jest --forceExit -i __tests__/*.spec.js"

@@ -1,12 +1,12 @@
 # Ulysse
 
-Siren song of the Internet is hard to resist.
+[![Version](https://img.shields.io/npm/v/ulysse?label=Version&style=flat&colorA=2B323B&colorB=1e2329)](https://www.npmjs.com/package/ulysse)
+[![License](https://img.shields.io/badge/license-GPL%20v3%2B-yellow.svg?label=License&style=flat&colorA=2B323B&colorB=1e2329)](https://raw.githubusercontent.com/johackim/ulysse/master/LICENSE.txt)
+[![Code Climate](https://img.shields.io/codeclimate/maintainability/johackim/ulysse.svg?label=Maintainability&style=flat&colorA=2B323B&colorB=1e2329)](https://codeclimate.com/github/johackim/ulysse)
 
-Ulysse is a simple and powerful tool to block your distracting apps and websites.
+Ulysse is a simple CLI tool for blocking your distracting apps and websites.
 
-Prevent yourself from getting distracted by blocking your most distracting apps and websites.
-
-The shield of Ulysse is a powerful tool to prevent you from bypassing the block, even if you are an administrator of your computer.
+Prevent distractions by blocking your most distracting apps and websites, even if you are the administrator of your computer.
 
 ## 📋 Requirements
 
@@ -15,9 +15,8 @@ The shield of Ulysse is a powerful tool to prevent you from bypassing the block,
 
 ## ✨ Features
 
-- [ ] Block your distracting apps and websites
-- [ ] Shield mode (no way to bypass)
-- [ ] Webhook support (for n8n, Zapier, IFTTT, etc...)
+- [x] Block your distracting apps and websites
+- [x] Shield mode (no way to bypass)
 
 ## 📦 Installation
 
@@ -39,25 +38,24 @@ Options:
                            or a quick block duration.
                            Examples: 
                              'ulysse -b example.com' (block indefinitely)
-                             'ulysse -b example.com -t 30m/day' (block with a daily limit)
-                             'ulysse -b MyAppName -t 10am-6pm' (block during specific hours)
                              'ulysse -b example.com -t 10m' (block for a short duration)
-                             'ulysse -b example.com/path' (block a specific path)
-                             'ulysse -b "*.*"' (block all websites)
+                             'ulysse -b example.com -t 10h-18h' (block during specific hours)
+                             'ulysse -b MyAppName -t 30m/day' (block with a daily limit)
 
   -u, --unblock TARGET     Unblock a specific website or application.
                            Example: 'ulysse -u example.com' or 'ulysse -u MyAppName'.
 
-  -w, --whitelist          Whitelist a specific website.
+  -w, --whitelist TARGET   Whitelist a specific website.
                            Example: 'ulysse -w example.com'.
 
-  -s, --shield             Enable shield mode to prevent jailbreak.
-                           Example: 'ulysse -s' or 'ulysse --shield'.
+  -s, --shield [on|off] [-p, --password VALUE]
+                           Enable or disable shield mode to prevent jailbreak.
+                           By default, the shield mode is on. Use 'off' along with a password to disable it.
+                           The password is required to disable the shield mode.
+                           Example: 'ulysse -s on' to enable or 'ulysse -s off -p myp@ssw0rd' to disable.
 
   -d, --daemon             Run Ulysse as a daemon.
                            Example: 'ulysse -d' or 'ulysse --daemon'.
-
-  -l, --list               List all currently blocked websites and apps.
 
   -v, --version            Show the version and exit.
 
