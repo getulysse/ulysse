@@ -1,5 +1,5 @@
 import { version } from '../package.json';
-import { HELP } from './constants';
+import { HELP_MESSAGE } from './constants';
 import {
     getParam,
     readConfig,
@@ -13,7 +13,7 @@ import {
 } from './utils';
 
 export const helpCmd = () => {
-    console.log(HELP);
+    console.log(HELP_MESSAGE);
 };
 
 export const versionCmd = () => {
