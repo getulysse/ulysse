@@ -1,4 +1,4 @@
-import packageJson from '../package.json';
+import { version } from '../package.json';
 import { HELP } from './constants';
 import {
     getParam,
@@ -17,7 +17,7 @@ export const helpCmd = () => {
 };
 
 export const versionCmd = () => {
-    console.log(packageJson.version);
+    console.log(version);
 };
 
 export const daemonCmd = () => {
