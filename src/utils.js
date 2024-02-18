@@ -273,12 +273,6 @@ export const generatePassword = (length = 20) => {
 export const enableShieldMode = (password = generatePassword()) => {
     const config = readConfig();
     const passwordHash = sha256(password);
-
-    if (!isValidPassword(password)) {
-        console.log('You must provide a valid password to enable the shield mode.');
-        return;
-    }
-
     console.log(`Your password is: ${password}`);
     sendDataToSocket({ ...config, passwordHash, password, shield: true });
 };
