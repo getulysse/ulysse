@@ -269,9 +269,8 @@ export const generatePassword = (length = 20) => {
     return password;
 };
 
-export const enableShieldMode = () => {
+export const enableShieldMode = (password = generatePassword()) => {
     const config = readConfig();
-    const password = generatePassword();
     const passwordHash = sha256(password);
     console.log(`Your password is: ${password}`);
     sendDataToSocket({ ...config, passwordHash, password, shield: true });

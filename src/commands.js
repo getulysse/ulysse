@@ -83,7 +83,7 @@ export const shieldCmd = (value = 'on') => {
             return;
         }
 
-        enableShieldMode();
+        enableShieldMode(password);
         console.log('Shield mode enabled.');
     }
 
