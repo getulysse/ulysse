@@ -4,11 +4,15 @@ import * as Utils from '../src/utils';
 jest.mock('../src/utils');
 
 beforeEach(() => {
+    process.env.RESOLV_CONF_PATH = '/tmp/resolv.conf';
+    process.env.SOCKET_PATH = '/tmp/ulysse.sock';
+
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(Utils, 'isSudo').mockReturnValue(true);
     jest.spyOn(Utils, 'blockApps').mockReturnValue(['chromium']);
-    process.env.RESOLV_CONF_PATH = '/tmp/resolv.conf';
-    process.env.SOCKET_PATH = '/tmp/ulysse.sock';
+    jest.spyOn(Utils, 'updateResolvConf').mockImplementation(() => {
+        fs.writeFileSync(process.env.RESOLV_CONF_PATH, 'nameserver 127.0.0.1', 'utf8');
+    });
 });
 
 test('Should block a running app', async () => {
@@ -17,7 +21,7 @@ test('Should block a running app', async () => {
     expect(console.log).toHaveBeenCalledWith('Blocking chromium');
 });
 
-test.skip('Should edit /etc/resolv.conf', async () => {
+test('Should edit /etc/resolv.conf', async () => {
     await import('../src/daemon');
 
     expect(fs.existsSync(process.env.RESOLV_CONF_PATH)).toBe(true);
