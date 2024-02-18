@@ -5,7 +5,7 @@
   "homepage": "https://github.com/johackim/ulysse",
   "license": "GPL-3.0",
   "main": "dist/index.js",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "node": ">=14.0.0"
   },

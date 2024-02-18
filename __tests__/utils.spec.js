@@ -138,25 +138,33 @@ test('Should get duration time type', () => {
     expect(getTimeType('10h-18h')).toBe('interval');
 });
 
-test.skip('Should block a distraction with a time-based interval', async () => {
-    const distraction = { name: 'chess.com', time: '0h-23h' };
-    createConfig({ blocklist: [distraction], whitelist: [] }, TEST_CONFIG_PATH);
-
-    const isBlocked = isDistractionBlocked(distraction.name);
-
-    expect(isBlocked).toBe(true);
-});
-
 test('Should get root domain', async () => {
     expect(rootDomain('www.example.com')).toBe('example.com');
     expect(rootDomain('example.com')).toBe('example.com');
 });
 
-test.skip('Should block a subdomain', async () => {
-    const distraction = { name: 'chess.com' };
-    createConfig({ blocklist: [distraction], whitelist: [] }, TEST_CONFIG_PATH);
+test('Should block all subdomains of a blocked domain', async () => {
+    const config = { blocklist: [{ name: 'chess.com' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
 
     const isBlocked = isDistractionBlocked('www.chess.com');
+
+    expect(isBlocked).toBe(true);
+});
+
+test('Should block a specific subdomain', async () => {
+    const config = { blocklist: [{ name: 'invidious.ethibox.fr' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    expect(isDistractionBlocked('invidious.ethibox.fr')).toBe(true);
+    expect(isDistractionBlocked('ethibox.fr')).toBe(false);
+});
+
+test('Should block a distraction with a time-based interval', async () => {
+    const config = { blocklist: [{ name: 'chess.com', time: '0h-23h' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    const isBlocked = isDistractionBlocked('chess.com');
 
     expect(isBlocked).toBe(true);
 });

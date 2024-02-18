@@ -192,6 +192,7 @@ export const isDistractionBlocked = (distraction) => {
     const time = blocklist.find((d) => d.name === rootDomain(distraction))?.time;
 
     const isWhitelisted = whitelist.some((d) => d.name === rootDomain(distraction));
+
     const isBlocked = blocklist.some((d) => {
         if (getTimeType(time) === 'interval') {
             const date = new Date();
@@ -203,7 +204,7 @@ export const isDistractionBlocked = (distraction) => {
             return isBlockedHour;
         }
 
-        return d.name === rootDomain(distraction);
+        return d.name === rootDomain(distraction) || d.name === distraction;
     });
 
     return isBlocked && !isWhitelisted;
