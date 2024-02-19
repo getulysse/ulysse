@@ -1,26 +1,17 @@
 #!/usr/bin/env node
 
 import { getParam, getAlias, isDaemonRunning } from './utils';
-import {
-    helpCmd,
-    versionCmd,
-    daemonCmd,
-    blockCmd,
-    shieldCmd,
-    serverCmd,
-    unblockCmd,
-    whitelistCmd,
-} from './commands';
+import * as cmd from './commands';
 
 const commands = {
-    '--help': helpCmd,
-    '--version': versionCmd,
-    '--daemon': daemonCmd,
-    '--block': blockCmd,
-    '--unblock': unblockCmd,
-    '--shield': shieldCmd,
-    '--whitelist': whitelistCmd,
-    '--server': serverCmd,
+    '--help': cmd.helpCmd,
+    '--version': cmd.versionCmd,
+    '--daemon': cmd.daemonCmd,
+    '--block': cmd.blockCmd,
+    '--unblock': cmd.unblockCmd,
+    '--shield': cmd.shieldCmd,
+    '--whitelist': cmd.whitelistCmd,
+    '--server': cmd.serverCmd,
 };
 
 const processCommand = () => {
@@ -38,7 +29,7 @@ const processCommand = () => {
         return;
     }
 
-    helpCmd();
+    cmd.helpCmd();
 };
 
 processCommand();
