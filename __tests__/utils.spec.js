@@ -4,7 +4,6 @@ import { DEFAULT_CONFIG } from '../src/constants';
 import {
     readConfig,
     editConfig,
-    rootDomain,
     createConfig,
     getTimeType,
     decrementTime,
@@ -40,6 +39,10 @@ test('Should read config file', async () => {
 });
 
 test('Should check distraction value', async () => {
+    expect(isValidDistraction({ name: '' })).toBe(false);
+    expect(isValidDistraction({ name: '*' })).toBe(false);
+    expect(isValidDistraction({ name: '*.*' })).toBe(true);
+    expect(isValidDistraction({ name: '*.example.com' })).toBe(true);
     expect(isValidDistraction({ name: 'example.com' })).toBe(true);
     expect(isValidDistraction({ name: 'chromium' })).toBe(true);
     expect(isValidDistraction({ name: 'chromium', time: 'badtime' })).toBe(false);
@@ -138,20 +141,6 @@ test('Should get duration time type', () => {
     expect(getTimeType('10h-18h')).toBe('interval');
 });
 
-test('Should get root domain', async () => {
-    expect(rootDomain('www.example.com')).toBe('example.com');
-    expect(rootDomain('example.com')).toBe('example.com');
-});
-
-test('Should block all subdomains of a blocked domain', async () => {
-    const config = { blocklist: [{ name: 'example.com' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
-
-    const isBlocked = isDistractionBlocked('www.example.com');
-
-    expect(isBlocked).toBe(true);
-});
-
 test('Should block a specific subdomain', async () => {
     const config = { blocklist: [{ name: 'www.example.com' }], whitelist: [] };
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
@@ -167,4 +156,58 @@ test('Should block a distraction with a time-based interval', async () => {
     const isBlocked = isDistractionBlocked('example.com');
 
     expect(isBlocked).toBe(true);
+});
+
+test('Should block all subdomains of a domain with a wildcard', async () => {
+    const config = { blocklist: [{ name: '*.example.com' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    const isBlocked = isDistractionBlocked('example.com');
+
+    expect(isBlocked).toBe(true);
+});
+
+test('Should block all subdomains of a domain with a time-based interval', async () => {
+    const config = { blocklist: [{ name: '*.example.com', time: '0h-23h' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    const isBlocked = isDistractionBlocked('example.com');
+
+    expect(isBlocked).toBe(true);
+});
+
+test('Should block all domains with *.*', async () => {
+    const config = { blocklist: [{ name: '*.*' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    const isBlocked = isDistractionBlocked('example.com');
+
+    expect(isBlocked).toBe(true);
+});
+
+test('Should block all domains with *.* except for the whitelist', async () => {
+    const config = { blocklist: [{ name: '*.*' }], whitelist: [{ name: 'www.example.com' }] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    const isBlocked = isDistractionBlocked('www.example.com');
+
+    expect(isBlocked).toBe(false);
+});
+
+test('Shoud not block apps if *.* is in the blocklist', async () => {
+    const config = { blocklist: [{ name: '*.*' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    const isBlocked = isDistractionBlocked('chromium');
+
+    expect(isBlocked).toBe(false);
+});
+
+test('Should not block a domain if it is in the whitelist with a wildcard', async () => {
+    const config = { blocklist: [{ name: '*.*' }], whitelist: [{ name: '*.example.com' }] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+
+    const isBlocked = isDistractionBlocked('www.example.com');
+
+    expect(isBlocked).toBe(false);
 });

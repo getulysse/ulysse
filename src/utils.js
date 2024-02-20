@@ -58,6 +58,8 @@ export const sendDataToSocket = (data) => {
 export const isValidApp = (app) => {
     const paths = process.env.PATH.split(':');
 
+    if (!app) return false;
+
     if (fs.existsSync(app)) return true;
 
     return paths.some((path) => fs.existsSync(`${path}/${app}`));
@@ -163,6 +165,13 @@ export const isValidDistraction = (distraction) => {
 
     if (time && !isValidTime(time)) return false;
 
+    if (name === '*.*') return true;
+
+    if (name.includes('*.')) {
+        const [, domain] = name.split('*.');
+        return isValidDomain(domain);
+    }
+
     return isValidDomain(name) || isValidApp(name);
 };
 
@@ -187,27 +196,35 @@ export const whitelistDistraction = (distraction) => {
 
 export const rootDomain = (domain) => domain.split('.').slice(-2).join('.');
 
+/* eslint-disable-next-line complexity */
 export const isDistractionBlocked = (distraction) => {
     const { blocklist, whitelist } = readConfig();
-    const time = blocklist.find((d) => d.name === rootDomain(distraction))?.time;
+    const time = blocklist.find((d) => d.name === distraction || d.name === `*.${distraction}`)?.time;
 
-    const isWhitelisted = whitelist.some((d) => d.name === rootDomain(distraction));
+    if (whitelist.some((d) => d.name === distraction)) return false;
+    if (whitelist.some((d) => d.name === `*.${rootDomain(distraction)}`)) return false;
+
+    if (isValidDomain(distraction) && blocklist.some((d) => d.name === '*.*')) return true;
+
+    if (getTimeType(time) === 'interval') {
+        const date = new Date();
+        const hour = date.getHours();
+
+        const [start, end] = time.split('-').map((t) => parseInt(t, 10));
+
+        return hour >= start && hour < end;
+    }
 
     const isBlocked = blocklist.some((d) => {
-        if (getTimeType(time) === 'interval') {
-            const date = new Date();
-            const hour = date.getHours();
-
-            const [start, end] = time.split('-').map((t) => parseInt(t, 10));
-            const isBlockedHour = hour >= start && hour < end;
-
-            return isBlockedHour;
+        if (d.name.includes('*')) {
+            const [, domain] = d.name.split('*.');
+            return domain === distraction;
         }
 
-        return d.name === rootDomain(distraction) || d.name === distraction;
+        return d.name === distraction;
     });
 
-    return isBlocked && !isWhitelisted;
+    return isBlocked;
 };
 
 export const isSudo = () => !!process.env.SUDO_USER;
