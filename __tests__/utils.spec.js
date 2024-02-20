@@ -40,7 +40,7 @@ test('Should read config file', async () => {
 });
 
 test('Should check distraction value', async () => {
-    expect(isValidDistraction({ name: 'chess.com' })).toBe(true);
+    expect(isValidDistraction({ name: 'example.com' })).toBe(true);
     expect(isValidDistraction({ name: 'chromium' })).toBe(true);
     expect(isValidDistraction({ name: 'chromium', time: 'badtime' })).toBe(false);
     expect(isValidDistraction({ name: 'chromium', time: '1m' })).toBe(true);
@@ -48,7 +48,7 @@ test('Should check distraction value', async () => {
 });
 
 test('Should add a distraction to blocklist', async () => {
-    const distraction = { name: 'chess.com' };
+    const distraction = { name: 'example.com' };
     editConfig({ ...DEFAULT_CONFIG, blocklist: [distraction] }, TEST_CONFIG_PATH);
 
     const config = readConfig(TEST_CONFIG_PATH);
@@ -56,7 +56,7 @@ test('Should add a distraction to blocklist', async () => {
 });
 
 test('Should remove a distraction from blocklist', async () => {
-    const distraction = { name: 'chess.com' };
+    const distraction = { name: 'example.com' };
     createConfig({ ...DEFAULT_CONFIG, blocklist: [distraction] }, TEST_CONFIG_PATH);
 
     editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
@@ -66,7 +66,7 @@ test('Should remove a distraction from blocklist', async () => {
 });
 
 test('Should not remove a distraction from blocklist if shield mode is enabled', async () => {
-    const distraction = { name: 'chess.com' };
+    const distraction = { name: 'example.com' };
     createConfig({ ...DEFAULT_CONFIG, blocklist: [distraction], shield: true }, TEST_CONFIG_PATH);
 
     editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
@@ -77,7 +77,7 @@ test('Should not remove a distraction from blocklist if shield mode is enabled',
 });
 
 test('Should not whitelist a distraction if shield mode is enabled', async () => {
-    const distraction = { name: 'chess.com' };
+    const distraction = { name: 'example.com' };
     createConfig({ ...DEFAULT_CONFIG, shield: true }, TEST_CONFIG_PATH);
 
     editConfig({ whitelist: [distraction] }, TEST_CONFIG_PATH);
@@ -144,27 +144,27 @@ test('Should get root domain', async () => {
 });
 
 test('Should block all subdomains of a blocked domain', async () => {
-    const config = { blocklist: [{ name: 'chess.com' }], whitelist: [] };
+    const config = { blocklist: [{ name: 'example.com' }], whitelist: [] };
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
 
-    const isBlocked = isDistractionBlocked('www.chess.com');
+    const isBlocked = isDistractionBlocked('www.example.com');
 
     expect(isBlocked).toBe(true);
 });
 
 test('Should block a specific subdomain', async () => {
-    const config = { blocklist: [{ name: 'invidious.ethibox.fr' }], whitelist: [] };
+    const config = { blocklist: [{ name: 'www.example.com' }], whitelist: [] };
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
 
-    expect(isDistractionBlocked('invidious.ethibox.fr')).toBe(true);
-    expect(isDistractionBlocked('ethibox.fr')).toBe(false);
+    expect(isDistractionBlocked('www.example.com')).toBe(true);
+    expect(isDistractionBlocked('example.com')).toBe(false);
 });
 
 test('Should block a distraction with a time-based interval', async () => {
-    const config = { blocklist: [{ name: 'chess.com', time: '0h-23h' }], whitelist: [] };
+    const config = { blocklist: [{ name: 'example.com', time: '0h-23h' }], whitelist: [] };
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
 
-    const isBlocked = isDistractionBlocked('chess.com');
+    const isBlocked = isDistractionBlocked('example.com');
 
     expect(isBlocked).toBe(true);
 });
