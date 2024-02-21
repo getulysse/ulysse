@@ -6,7 +6,7 @@ import {
     editConfig,
     createConfig,
     getTimeType,
-    decrementTime,
+    createTimeout,
     getRunningApps,
     isValidDistraction,
     isDistractionBlocked,
@@ -126,12 +126,13 @@ test('Should get all running apps', async () => {
     expect(JSON.stringify(apps)).toContain('node');
 });
 
-test('Should decrement time', () => {
-    expect(decrementTime('30m')).toBe('29m');
-    expect(decrementTime('2h')).toBe('1h59m');
-    expect(decrementTime('1h59m')).toBe('1h58m');
-    expect(decrementTime('1d')).toBe('23h59m');
-    expect(decrementTime('1m')).toBe('0m');
+test('Should create a timeout incremented by a duration', async () => {
+    const timestamp = 1704063600;
+    expect(createTimeout('30m', timestamp)).toBe(1704065400);
+    expect(createTimeout('2h', timestamp)).toBe(1704070800);
+    expect(createTimeout('1h59m', timestamp)).toBe(1704070740);
+    expect(createTimeout('1d', timestamp)).toBe(1704150000);
+    expect(createTimeout('1m', timestamp)).toBe(1704063660);
 });
 
 test('Should get duration time type', () => {
@@ -210,4 +211,16 @@ test('Should not block a domain if it is in the whitelist with a wildcard', asyn
     const isBlocked = isDistractionBlocked('www.example.com');
 
     expect(isBlocked).toBe(false);
+});
+
+test('Should remove a distraction from blocklist if timeout is reached and shield mode is enabled', async () => {
+    editConfig({
+        shield: true,
+        blocklist: [{ name: 'chromium' }, { name: '*.*', timeout: 1708617136 }],
+        passwordHash: 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b',
+    }, TEST_CONFIG_PATH);
+
+    editConfig({ blocklist: [{ name: 'chromium' }] }, TEST_CONFIG_PATH);
+
+    expect(readConfig(TEST_CONFIG_PATH).blocklist).toEqual([{ name: 'chromium' }]);
 });

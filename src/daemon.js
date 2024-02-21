@@ -6,8 +6,6 @@ import {
     blockApps,
     readConfig,
     editConfig,
-    getTimeType,
-    decrementTime,
     updateResolvConf,
     sendNotification,
 } from './utils';
@@ -29,14 +27,15 @@ const handleSynchronize = () => {
     socket.emit('synchronize', config);
 };
 
-const handleDecrementBlocklist = () => {
+const handleBlocklist = () => {
     const config = readConfig();
 
-    const blocklist = config.blocklist
-        .map((d) => ({ ...d, time: getTimeType(d.time) === 'duration' ? decrementTime(d.time) : d.time }))
-        .filter((d) => d.time !== '0m');
+    const blocklist = config?.blocklist.filter(({ timeout }) => {
+        if (!timeout) return true;
+        return timeout >= Math.floor(Date.now() / 1000);
+    });
 
-    if (JSON.stringify(blocklist) === JSON.stringify(config.blocklist)) return;
+    if (blocklist?.length === config?.blocklist.length) return;
 
     editConfig({ ...config, blocklist });
 };
@@ -71,10 +70,11 @@ setInterval(() => {
 }, 1000);
 
 setInterval(() => {
-    handleDecrementBlocklist();
+    handleBlocklist();
     handleSynchronize();
 }, 60000);
 
+handleBlocklist();
 handleAppBlocking();
 
 process.on('SIGINT', cleanUpAndExit);

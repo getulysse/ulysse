@@ -108,6 +108,11 @@ export const editConfig = (config, path = CONFIG_PATH) => {
         whitelist: currentConfig.shield ? currentConfig.whitelist : newWhitelist,
     };
 
+    newConfig.blocklist = newConfig.blocklist.filter(({ timeout }) => {
+        if (!timeout) return true;
+        return timeout >= Math.floor(Date.now() / 1000);
+    });
+
     if (isValidPassword(password, path)) {
         unblockRoot();
         newConfig.shield = false;
@@ -175,16 +180,38 @@ export const isValidDistraction = (distraction) => {
     return isValidDomain(name) || isValidApp(name);
 };
 
+export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000)) => {
+    const units = { m: 60, h: 3600, d: 86400 };
+    const match = duration.match(/(\d+)([mhd])/g);
+
+    return match.reduce((acc, part) => {
+        const value = parseInt(part, 10);
+        const unit = part.match(/[mhd]/)[0];
+        return acc + value * units[unit];
+    }, timestamp);
+};
+
 export const blockDistraction = (distraction) => {
     const config = readConfig();
     config.blocklist.push(distraction);
     config.blocklist = removeDuplicates(config.blocklist);
+    config.blocklist = config.blocklist.map((d) => {
+        if (getTimeType(d.time) === 'duration') {
+            return { ...d, timeout: createTimeout(d.time) };
+        }
+
+        return d;
+    });
+
     sendDataToSocket(config);
 };
 
 export const unblockDistraction = (distraction) => {
     const config = readConfig();
-    config.blocklist = config.blocklist.filter((d) => JSON.stringify(d) !== JSON.stringify(distraction));
+    config.blocklist = config.blocklist.filter((d) => {
+        if (d.name === distraction.name && d.time === distraction.time) return false;
+        return true;
+    });
     sendDataToSocket(config);
 };
 
@@ -321,23 +348,3 @@ export const getParam = (key) => {
 };
 
 export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
-
-/* eslint-disable-next-line complexity */
-export const decrementTime = (time) => {
-    let [hours, minutes] = time.includes('h') ? time.split('h') : [0, time];
-    minutes = minutes.includes('m') ? parseInt(minutes, 10) : (hours = parseInt(hours, 10), 0);
-    if (time.includes('d')) return '23h59m';
-
-    minutes -= 1;
-
-    if (minutes < 0) {
-        hours = hours ? hours - 1 : 23;
-        minutes = 59;
-    }
-
-    if (hours === 0 && minutes === 0) {
-        return '0m';
-    }
-
-    return `${hours ? `${hours}h` : ''}${minutes > 0 ? `${minutes}m` : '0m'}`;
-};
