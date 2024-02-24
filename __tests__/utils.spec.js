@@ -151,8 +151,10 @@ test('Should block a specific subdomain', async () => {
 });
 
 test('Should block a distraction with a time-based interval', async () => {
+    const currentDate = new Date('2021-01-01T12:00:00Z');
     const config = { blocklist: [{ name: 'example.com', time: '0h-23h' }], whitelist: [] };
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
 
     const isBlocked = isDistractionBlocked('example.com');
 
@@ -163,18 +165,31 @@ test('Should block all subdomains of a domain with a wildcard', async () => {
     const config = { blocklist: [{ name: '*.example.com' }], whitelist: [] };
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
 
-    const isBlocked = isDistractionBlocked('example.com');
+    const isBlocked = isDistractionBlocked('www.example.com');
 
     expect(isBlocked).toBe(true);
 });
 
-test('Should block all subdomains of a domain with a time-based interval', async () => {
-    const config = { blocklist: [{ name: '*.example.com', time: '0h-23h' }], whitelist: [] };
+test('Should block all subdomains of a domain with a wildcard & a time-based interval', async () => {
+    const currentDate = new Date('2021-01-01T12:00:00Z');
+    const config = { blocklist: [{ name: '*.example.com', time: '0h-19h' }], whitelist: [] };
     jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
 
-    const isBlocked = isDistractionBlocked('example.com');
+    const isBlocked = isDistractionBlocked('www.example.com');
 
     expect(isBlocked).toBe(true);
+});
+
+test('Should not block a subdomain of a domain with a wildcard & a time-based interval', async () => {
+    const currentDate = new Date('2021-01-01T20:00:00Z');
+    const config = { blocklist: [{ name: '*.example.com', time: '0h-19h' }], whitelist: [] };
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    const isBlocked = isDistractionBlocked('www.example.com');
+
+    expect(isBlocked).toBe(false);
 });
 
 test('Should block all domains with *.*', async () => {

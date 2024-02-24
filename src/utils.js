@@ -226,7 +226,7 @@ export const rootDomain = (domain) => domain.split('.').slice(-2).join('.');
 /* eslint-disable-next-line complexity */
 export const isDistractionBlocked = (distraction) => {
     const { blocklist, whitelist } = readConfig();
-    const time = blocklist.find((d) => d.name === distraction || d.name === `*.${distraction}`)?.time;
+    const time = blocklist.find((d) => d.name === distraction || d.name === `*.${rootDomain(distraction)}`)?.time;
 
     if (whitelist.some((d) => d.name === distraction)) return false;
     if (whitelist.some((d) => d.name === `*.${rootDomain(distraction)}`)) return false;
@@ -242,13 +242,13 @@ export const isDistractionBlocked = (distraction) => {
         return hour >= start && hour < end;
     }
 
-    const isBlocked = blocklist.some((d) => {
-        if (d.name.includes('*')) {
-            const [, domain] = d.name.split('*.');
-            return domain === distraction;
+    const isBlocked = blocklist.some(({ name }) => {
+        if (name.includes('*')) {
+            const [, domain] = name.split('*.');
+            return domain === rootDomain(distraction);
         }
 
-        return d.name === distraction;
+        return name === distraction || name === rootDomain(distraction);
     });
 
     return isBlocked;
