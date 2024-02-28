@@ -1,15 +1,26 @@
 import fs from 'fs';
+import childProcess from 'child_process';
 import * as Utils from '../src/utils';
 
 jest.mock('../src/utils');
 
-beforeEach(() => {
-    process.env.RESOLV_CONF_PATH = '/tmp/resolv.conf';
-    process.env.SOCKET_PATH = '/tmp/ulysse.sock';
+jest.mock('net', () => ({
+    createServer: jest.fn().mockReturnThis(),
+    listen: jest.fn().mockReturnThis(),
+}));
 
+jest.mock('socket.io-client', () => ({
+    io: jest.fn(() => ({
+        emit: jest.fn(),
+        on: jest.fn(),
+    })),
+}));
+
+beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(childProcess, 'exec').mockImplementation(() => {});
     jest.spyOn(Utils, 'isSudo').mockReturnValue(true);
-    jest.spyOn(Utils, 'blockApps').mockReturnValue(['chromium']);
+    jest.spyOn(Utils, 'getRunningBlockedApps').mockReturnValue([{ name: 'chromium', pid: 123 }]);
     jest.spyOn(Utils, 'updateResolvConf').mockImplementation(() => {
         fs.writeFileSync(process.env.RESOLV_CONF_PATH, 'nameserver 127.0.0.1', 'utf8');
     });

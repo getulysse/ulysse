@@ -1,35 +1,34 @@
 import fs from 'fs';
 import net from 'net';
+import { exec } from 'child_process';
 import { io } from 'socket.io-client';
 import {
+    config,
     isSudo,
-    blockApps,
-    readConfig,
     editConfig,
     updateResolvConf,
     sendNotification,
+    getRunningBlockedApps,
 } from './utils';
 import { SOCKET_PATH, SERVER_HOST } from './constants';
 
 const socket = io(SERVER_HOST);
 
 const handleAppBlocking = () => {
-    const blockedApps = blockApps();
+    const blockedApps = getRunningBlockedApps();
 
-    for (const appName of blockedApps) {
-        console.log(`Blocking ${appName}`);
-        sendNotification('Ulysse', `Blocking ${appName}`);
+    for (const app of blockedApps) {
+        exec(`kill -9 ${app.pid}`);
+        console.log(`Blocking ${app.name}`);
+        sendNotification('Ulysse', `Blocking ${app.name}`);
     }
 };
 
 const handleSynchronize = () => {
-    const config = readConfig();
     socket.emit('synchronize', config);
 };
 
-const handleBlocklist = () => {
-    const config = readConfig();
-
+const handleTimeout = () => {
     const blocklist = config?.blocklist.filter(({ timeout }) => {
         if (!timeout) return true;
         return timeout >= Math.floor(Date.now() / 1000);
@@ -41,11 +40,19 @@ const handleBlocklist = () => {
 };
 
 const server = net.createServer((connection) => {
+    let buffer = '';
+
     connection.on('data', (data) => {
-        const config = JSON.parse(data);
-        const password = !config.shield ? config?.password : undefined;
-        const newConfig = editConfig({ ...config, date: new Date().toISOString() });
-        socket.emit('synchronize', { ...newConfig, password });
+        buffer += data.toString();
+    });
+
+    connection.on('end', () => {
+        const newConfig = JSON.parse(buffer);
+        const password = !config.shield ? newConfig?.password : undefined;
+        socket.emit('synchronize', {
+            ...editConfig({ ...newConfig, date: new Date().toISOString() }),
+            password,
+        });
     });
 });
 
@@ -70,11 +77,11 @@ setInterval(() => {
 }, 1000);
 
 setInterval(() => {
-    handleBlocklist();
+    handleTimeout();
     handleSynchronize();
 }, 60000);
 
-handleBlocklist();
+handleTimeout();
 handleAppBlocking();
 
 process.on('SIGINT', cleanUpAndExit);
@@ -91,9 +98,7 @@ socket.on('connect', () => {
 });
 
 socket.on('synchronize', (newConfig) => {
-    const currentConfig = readConfig();
-
-    if (new Date(newConfig.date) > new Date(currentConfig.date)) {
+    if (new Date(newConfig.date) > new Date(config.date)) {
         editConfig(newConfig);
         console.log('Synchronize...');
     }

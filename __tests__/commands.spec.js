@@ -1,11 +1,19 @@
-import { jest } from '@jest/globals';
-import * as Utils from '../src/utils';
+import { editConfig } from '../src/utils';
 import { helpCmd, blockCmd, whitelistCmd, unblockCmd, shieldCmd } from '../src/commands';
 
-jest.mock('../src/utils');
+jest.mock('net', () => ({
+    createConnection: jest.fn().mockReturnThis(),
+    write: jest.fn(),
+    end: jest.fn(),
+}));
+
+jest.mock('child_process', () => ({
+    execSync: jest.fn().mockImplementation(() => false),
+}));
 
 beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
+    editConfig({ shield: false, password: 'ulysse', blocklist: [], whitelist: [] });
 });
 
 test('As a user, I can display the help', async () => {
@@ -15,24 +23,18 @@ test('As a user, I can display the help', async () => {
 });
 
 test('As a user, I can block a domain', async () => {
-    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => true);
-
     blockCmd('example.com');
 
     expect(console.log).toHaveBeenCalledWith('Blocking example.com');
 });
 
 test('As a user, I can block an app', async () => {
-    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => true);
-
     blockCmd('chromium');
 
     expect(console.log).toHaveBeenCalledWith('Blocking chromium');
 });
 
 test('As a user, I cannot block an invalid distraction', async () => {
-    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => false);
-
     blockCmd('inexistent');
 
     expect(console.log).toHaveBeenCalledWith('You must provide a valid distraction.');
@@ -45,8 +47,6 @@ test('As a user, I can whitelist a domain', async () => {
 });
 
 test('As a user, I can unblock a domain', async () => {
-    jest.spyOn(Utils, 'isValidDistraction').mockImplementation(() => true);
-
     unblockCmd('example.com');
 
     expect(console.log).toHaveBeenCalledWith('Unblocking example.com');
@@ -65,7 +65,8 @@ test('As a user, I can enable shield mode', async () => {
 });
 
 test('As a user, I cannot enable shield mode if it is already enabled', async () => {
-    jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: true }));
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    editConfig({ shield: true, passwordHash });
 
     shieldCmd();
 
@@ -73,9 +74,9 @@ test('As a user, I cannot enable shield mode if it is already enabled', async ()
 });
 
 test('As a user, I can disable shield mode', async () => {
-    jest.spyOn(Utils, 'getParam').mockImplementation((param) => (param === '--password' ? 'password' : undefined));
-    jest.spyOn(Utils, 'isValidPassword').mockImplementation(() => true);
-    jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: true }));
+    process.argv = ['ulysse', '-s', 'off', '-p', 'ulysse'];
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    editConfig({ shield: true, passwordHash });
 
     shieldCmd('off');
 
@@ -83,7 +84,7 @@ test('As a user, I can disable shield mode', async () => {
 });
 
 test('As a user, I cannot disable shield mode if it is already disabled', async () => {
-    jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: false }));
+    editConfig({ shield: false, password: 'ulysse' });
 
     shieldCmd('off');
 
@@ -91,19 +92,19 @@ test('As a user, I cannot disable shield mode if it is already disabled', async 
 });
 
 test('As a user, I cannot unblock a distraction if shield mode is enabled', async () => {
-    jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: true }));
-    const domain = 'youtube.com';
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    editConfig({ shield: true, passwordHash });
 
-    unblockCmd(domain);
+    unblockCmd('youtube.com');
 
     expect(console.log).toHaveBeenCalledWith('You must disable the shield mode first.');
 });
 
 test('As a user, I cannot whitelist a distraction if shield mode is enabled', async () => {
-    jest.spyOn(Utils, 'readConfig').mockImplementation(() => ({ shield: true }));
-    const domain = 'youtube.com';
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    editConfig({ shield: true, passwordHash });
 
-    whitelistCmd(domain);
+    whitelistCmd('youtube.com');
 
     expect(console.log).toHaveBeenCalledWith('You must disable the shield mode first.');
 });

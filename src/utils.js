@@ -5,14 +5,24 @@ import readline from 'readline';
 import { dirname } from 'path';
 import { exec, execSync } from 'child_process';
 import {
-    CONFIG_PATH,
-    RESOLV_CONF_PATH,
-    DEFAULT_CONFIG,
     DNS_SERVER,
     SOCKET_PATH,
+    CONFIG_PATH,
+    DOMAIN_REGEX,
+    DEFAULT_CONFIG,
+    RESOLV_CONF_PATH,
 } from './constants';
 
-const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
+export const config = (() => {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        fs.mkdirSync(dirname(CONFIG_PATH), { recursive: true });
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
+    }
+
+    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+})();
+
+export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
     try {
         return fn(...args);
     } catch (error) {
@@ -24,23 +34,12 @@ const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
     }
 };
 
-export const createConfig = (config, path = CONFIG_PATH) => {
-    fs.mkdirSync(dirname(path), { recursive: true });
-    fs.writeFileSync(path, JSON.stringify(config, null, 4), 'utf8');
-};
-
-export const readConfig = (path = CONFIG_PATH) => {
-    if (!fs.existsSync(path)) createConfig(DEFAULT_CONFIG, path);
-    return JSON.parse(fs.readFileSync(path, 'utf8'));
-};
-
 export const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
 
-export const isValidPassword = (password, path = CONFIG_PATH) => {
+export const isValidPassword = (password) => {
     if (!password) return false;
-    const { passwordHash } = readConfig(path);
     const sha256sum = sha256(String(password));
-    return sha256sum === passwordHash;
+    return sha256sum === config.passwordHash;
 };
 
 export const sendDataToSocket = (data) => {
@@ -70,9 +69,7 @@ export const blockRoot = () => {
     execSync('usermod -s /usr/sbin/nologin root');
     fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
 
-    const { whitelist } = readConfig();
-
-    for (const w of whitelist) {
+    for (const w of config.whitelist) {
         if (isValidApp(w.name)) {
             fs.appendFileSync('/etc/sudoers.d/ulysse', `\n${process.env.SUDO_USER} ALL=(ALL) ${w.name}`, 'utf8');
         }
@@ -94,48 +91,34 @@ export const removeDuplicates = (arr) => {
 };
 
 /* eslint-disable-next-line complexity */
-export const editConfig = (config, path = CONFIG_PATH) => {
-    const currentConfig = readConfig(path);
-    const { blocklist = [], whitelist = [], passwordHash, password, date } = config;
+export const editConfig = ({ blocklist = [], whitelist = [], shield, password, passwordHash, date }) => {
+    config.date = date || new Date().toISOString();
 
-    const newBlocklist = removeDuplicates([...currentConfig.blocklist, ...blocklist]);
-    const newWhitelist = removeDuplicates([...currentConfig.whitelist, ...whitelist]);
+    config.whitelist = removeDuplicates(config.shield ? [...config.whitelist, ...whitelist] : whitelist);
+    config.blocklist = removeDuplicates(config.shield ? [...config.blocklist, ...blocklist] : blocklist);
+    config.blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
 
-    const newConfig = {
-        ...currentConfig,
-        date: date || new Date().toISOString(),
-        blocklist: currentConfig.shield ? newBlocklist : blocklist,
-        whitelist: currentConfig.shield ? currentConfig.whitelist : newWhitelist,
-    };
-
-    newConfig.blocklist = newConfig.blocklist.filter(({ timeout }) => {
-        if (!timeout) return true;
-        return timeout >= Math.floor(Date.now() / 1000);
-    });
-
-    if (isValidPassword(password, path)) {
+    if (isValidPassword(password)) {
         unblockRoot();
-        newConfig.shield = false;
-        delete newConfig.passwordHash;
+        config.shield = false;
+        delete config.passwordHash;
     }
 
-    if (config.shield && passwordHash) {
+    if (shield && passwordHash) {
         blockRoot();
-        newConfig.shield = true;
-        newConfig.passwordHash = passwordHash;
+        config.shield = true;
+        config.passwordHash = passwordHash;
     }
 
-    execSync(`chattr -i ${path}`);
-    fs.writeFileSync(path, JSON.stringify(newConfig, null, 4), 'utf8');
-    execSync(`chattr +i ${path}`);
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 4), 'utf8');
 
-    return newConfig;
+    return config;
 };
 
 export const getRunningApps = tryCatch(() => {
     const folders = fs.readdirSync('/proc').filter((f) => !Number.isNaN(Number(f)));
 
-    let apps = folders.map((folder) => {
+    return folders.map((folder) => {
         if (!fs.existsSync(`/proc/${folder}/status`) || !fs.existsSync(`/proc/${folder}/cmdline`)) return false;
 
         const status = fs.readFileSync(`/proc/${folder}/status`, 'utf8');
@@ -144,14 +127,10 @@ export const getRunningApps = tryCatch(() => {
         const bin = cmd.split(' ').shift();
 
         return { pid: folder, cmd, name, bin };
-    });
-
-    apps = apps.filter((p) => p.name);
-
-    return apps;
+    }).filter((p) => p.name);
 }, []);
 
-export const isValidDomain = (domain) => /^([\w-]+\.)+[\w-]+$/.test(domain);
+export const isValidDomain = (domain) => DOMAIN_REGEX.test(domain);
 
 export const getTimeType = (time) => {
     const durationPattern = /^(\d+d)?(\d+h)?(\d+m)?$/;
@@ -192,7 +171,6 @@ export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000
 };
 
 export const blockDistraction = (distraction) => {
-    const config = readConfig();
     config.blocklist.push(distraction);
     config.blocklist = removeDuplicates(config.blocklist);
     config.blocklist = config.blocklist.map((d) => {
@@ -207,51 +185,45 @@ export const blockDistraction = (distraction) => {
 };
 
 export const unblockDistraction = (distraction) => {
-    const config = readConfig();
-    config.blocklist = config.blocklist.filter((d) => {
-        if (d.name === distraction.name && d.time === distraction.time) return false;
-        return true;
-    });
+    config.blocklist = config.blocklist.filter(({ name, time }) => JSON.stringify({ name, time }) !== JSON.stringify(distraction));
     sendDataToSocket(config);
 };
 
 export const whitelistDistraction = (distraction) => {
-    const config = readConfig();
     config.whitelist.push(distraction);
     sendDataToSocket(config);
 };
 
-export const rootDomain = (domain) => domain.split('.').slice(-2).join('.');
+export const getRootDomain = (domain) => domain.split('.').slice(-2).join('.');
 
-/* eslint-disable-next-line complexity */
+export const isDistractionWhitelisted = (distraction) => {
+    if (config.whitelist.some((d) => d.name === distraction)) return true;
+    if (config.whitelist.some((d) => d.name === `*.${getRootDomain(distraction)}`)) return true;
+
+    return false;
+};
+
+export const isWithinTimeRange = (time) => {
+    if (!time || getTimeType(time) !== 'interval') return true;
+
+    const [start, end] = time.split('-').map((t) => parseInt(t, 10));
+    const hour = new Date().getHours();
+
+    return hour >= start && hour < end;
+};
+
+export const isDomainBlocked = (domain, rule, rootDomain) => {
+    if (!isValidDomain(domain)) return false;
+    return rule === '*.*' || rule === domain || rule === `*.${rootDomain}`;
+};
+
 export const isDistractionBlocked = (distraction) => {
-    const { blocklist, whitelist } = readConfig();
-    const time = blocklist.find((d) => d.name === distraction || d.name === `*.${rootDomain(distraction)}`)?.time;
+    if (isDistractionWhitelisted(distraction)) return false;
 
-    if (whitelist.some((d) => d.name === distraction)) return false;
-    if (whitelist.some((d) => d.name === `*.${rootDomain(distraction)}`)) return false;
+    const rootDomain = getRootDomain(distraction);
+    const { blocklist } = config;
 
-    if (isValidDomain(distraction) && blocklist.some((d) => d.name === '*.*')) return true;
-
-    if (getTimeType(time) === 'interval') {
-        const date = new Date();
-        const hour = date.getHours();
-
-        const [start, end] = time.split('-').map((t) => parseInt(t, 10));
-
-        return hour >= start && hour < end;
-    }
-
-    const isBlocked = blocklist.some(({ name }) => {
-        if (name.includes('*')) {
-            const [, domain] = name.split('*.');
-            return domain === rootDomain(distraction);
-        }
-
-        return name === distraction || name === rootDomain(distraction);
-    });
-
-    return isBlocked;
+    return blocklist.some(({ name, time }) => (name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
 };
 
 export const isSudo = () => !!process.env.SUDO_USER;
@@ -266,25 +238,17 @@ export const sendNotification = (title, message) => {
     exec(`sudo -u $SUDO_USER ${envs} notify-send "${title}" "${message}"`);
 };
 
-export const blockApps = () => {
-    const config = readConfig();
-
-    const blocklist = config.blocklist
-        .filter((d) => isValidApp(d.name))
-        .filter((d) => isDistractionBlocked(d.name))
+export const getRunningBlockedApps = () => {
+    const blockedApps = config.blocklist
+        .filter(({ name }) => !isValidDomain(name) && !name.includes('*'))
+        .filter(({ time }) => isWithinTimeRange(time))
         .map(({ name }) => name);
 
-    const blockedApps = getRunningApps()
-        .filter((a) => blocklist?.includes(a.cmd) || blocklist?.includes(a.bin) || blocklist?.includes(a.name))
-        .map((p) => ({ ...p, name: blocklist.find((b) => b === p.cmd || b === p.name) }));
+    const runningBlockedApps = getRunningApps()
+        .filter((a) => blockedApps?.includes(a.cmd) || blockedApps?.includes(a.bin) || blockedApps?.includes(a.name))
+        .map((p) => ({ ...p, name: blockedApps.find((b) => b === p.cmd || b === p.name) }));
 
-    if (!blockedApps.length) return [];
-
-    for (const app of blockedApps) {
-        exec(`kill -9 ${app.pid}`);
-    }
-
-    return removeDuplicates(blockedApps.map((p) => p.name));
+    return runningBlockedApps || [];
 };
 
 export const isDaemonRunning = () => {
@@ -315,14 +279,12 @@ export const generatePassword = (length = 20) => {
 };
 
 export const enableShieldMode = (password = generatePassword()) => {
-    const config = readConfig();
     const passwordHash = sha256(password);
     console.log(`Your password is: ${password}`);
     sendDataToSocket({ ...config, passwordHash, password, shield: true });
 };
 
 export const disableShieldMode = (password) => {
-    const config = readConfig();
     sendDataToSocket({ ...config, password, shield: false });
 };
 

@@ -1,8 +1,8 @@
 import { version } from '../package.json';
 import { HELP_MESSAGE } from './constants';
 import {
+    config,
     getParam,
-    readConfig,
     enableShieldMode,
     disableShieldMode,
     isValidPassword,
@@ -44,7 +44,6 @@ export const blockCmd = (name) => {
 export const unblockCmd = (name) => {
     const time = getParam('--time') || getParam('-t');
     const distraction = { name, time };
-    const config = readConfig();
 
     if (!isValidDistraction(distraction)) {
         console.log('You must provide a valid distraction.');
@@ -61,8 +60,6 @@ export const unblockCmd = (name) => {
 };
 
 export const whitelistCmd = (name) => {
-    const config = readConfig();
-
     if (config?.shield) {
         console.log('You must disable the shield mode first.');
         return;
@@ -74,7 +71,6 @@ export const whitelistCmd = (name) => {
 
 /* eslint-disable-next-line complexity */
 export const shieldCmd = (value = 'on') => {
-    const config = readConfig();
     const password = getParam('--password') || getParam('-p');
 
     if (value === 'on') {

@@ -1,122 +1,89 @@
-import fs from 'fs';
-import childProcess from 'child_process';
-import { DEFAULT_CONFIG } from '../src/constants';
 import {
-    readConfig,
     editConfig,
-    createConfig,
     getTimeType,
     createTimeout,
     getRunningApps,
+    isWithinTimeRange,
     isValidDistraction,
     isDistractionBlocked,
+    getRunningBlockedApps,
 } from '../src/utils';
 
-const TEST_CONFIG_PATH = '/tmp/config.json';
+jest.mock('child_process', () => ({
+    execSync: jest.fn().mockImplementation(() => false),
+}));
 
 beforeEach(() => {
-    jest.spyOn(childProcess, 'execSync').mockImplementation(() => {});
-    if (fs.existsSync(TEST_CONFIG_PATH)) {
-        fs.unlinkSync(TEST_CONFIG_PATH);
-    }
-});
-
-test('Should create a config file', async () => {
-    const config = { blocklist: [], whitelist: [] };
-
-    createConfig(config, TEST_CONFIG_PATH);
-
-    expect(fs.existsSync(TEST_CONFIG_PATH)).toBe(true);
-    expect(fs.readFileSync(TEST_CONFIG_PATH, 'utf8')).toBe(JSON.stringify(config, null, 4));
-});
-
-test('Should read config file', async () => {
-    createConfig({ blocklist: [], whitelist: [] }, TEST_CONFIG_PATH);
-
-    const config = readConfig(TEST_CONFIG_PATH);
-
-    expect(config).toEqual({ blocklist: [], whitelist: [] });
-});
-
-test('Should check distraction value', async () => {
-    expect(isValidDistraction({ name: '' })).toBe(false);
-    expect(isValidDistraction({ name: '*' })).toBe(false);
-    expect(isValidDistraction({ name: '*.*' })).toBe(true);
-    expect(isValidDistraction({ name: '*.example.com' })).toBe(true);
-    expect(isValidDistraction({ name: 'example.com' })).toBe(true);
-    expect(isValidDistraction({ name: 'chromium' })).toBe(true);
-    expect(isValidDistraction({ name: 'chromium', time: 'badtime' })).toBe(false);
-    expect(isValidDistraction({ name: 'chromium', time: '1m' })).toBe(true);
-    expect(isValidDistraction({ name: 'inexistent' })).toBe(false);
+    editConfig({ shield: false, password: 'ulysse', blocklist: [], whitelist: [] });
 });
 
 test('Should add a distraction to blocklist', async () => {
     const distraction = { name: 'example.com' };
-    editConfig({ ...DEFAULT_CONFIG, blocklist: [distraction] }, TEST_CONFIG_PATH);
 
-    const config = readConfig(TEST_CONFIG_PATH);
+    const config = editConfig({ blocklist: [distraction] });
+
     expect(config.blocklist).toEqual(expect.arrayContaining([distraction]));
 });
 
 test('Should remove a distraction from blocklist', async () => {
-    const distraction = { name: 'example.com' };
-    createConfig({ ...DEFAULT_CONFIG, blocklist: [distraction] }, TEST_CONFIG_PATH);
+    editConfig({ blocklist: [{ name: 'example.com' }] });
 
-    editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
+    const { blocklist } = editConfig({ blocklist: [] });
 
-    const config = readConfig(TEST_CONFIG_PATH);
-    expect(config.blocklist).toEqual(expect.arrayContaining([]));
+    expect(blocklist).toEqual([]);
 });
 
 test('Should not remove a distraction from blocklist if shield mode is enabled', async () => {
     const distraction = { name: 'example.com' };
-    createConfig({ ...DEFAULT_CONFIG, blocklist: [distraction], shield: true }, TEST_CONFIG_PATH);
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    editConfig({ shield: true, passwordHash, blocklist: [distraction] });
 
-    editConfig({ blocklist: [] }, TEST_CONFIG_PATH);
+    const config = editConfig({ blocklist: [] });
 
-    const config = readConfig(TEST_CONFIG_PATH);
-    expect(config.shield).toBe(true);
     expect(config.blocklist).toEqual(expect.arrayContaining([distraction]));
+});
+
+test('Should whitelist a distraction', async () => {
+    const distraction = { name: 'example.com' };
+
+    const config = editConfig({ whitelist: [distraction] });
+
+    expect(config.whitelist).toEqual(expect.arrayContaining([distraction]));
 });
 
 test('Should not whitelist a distraction if shield mode is enabled', async () => {
     const distraction = { name: 'example.com' };
-    createConfig({ ...DEFAULT_CONFIG, shield: true }, TEST_CONFIG_PATH);
+    const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
+    editConfig({ shield: true, passwordHash, blocklist: [], whitelist: [] });
 
-    editConfig({ whitelist: [distraction] }, TEST_CONFIG_PATH);
+    const config = editConfig({ whitelist: [distraction] });
 
-    const config = readConfig(TEST_CONFIG_PATH);
-    expect(config.shield).toBe(true);
     expect(config.whitelist).toEqual(expect.arrayContaining([]));
 });
 
 test('Should enable shield mode', async () => {
     const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
 
-    editConfig({ shield: true, passwordHash }, TEST_CONFIG_PATH);
+    const config = editConfig({ shield: true, passwordHash });
 
-    const config = readConfig(TEST_CONFIG_PATH);
-    expect(config.shield).toBe(true);
     expect(config.passwordHash).toBe(passwordHash);
 });
 
 test('Should disable shield mode', async () => {
     const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
-    createConfig({ ...DEFAULT_CONFIG, passwordHash, shield: true }, TEST_CONFIG_PATH);
+    editConfig({ passwordHash, shield: true });
 
-    editConfig({ shield: false, password: 'ulysse' }, TEST_CONFIG_PATH);
+    const config = editConfig({ shield: false, password: 'ulysse' });
 
-    const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(false);
 });
 
 test('Should not disable shield mode if password is wrong', async () => {
     const passwordHash = 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b';
-    createConfig({ ...DEFAULT_CONFIG, passwordHash, shield: true }, TEST_CONFIG_PATH);
+    editConfig({ passwordHash, shield: true });
 
-    editConfig({ shield: false, password: 'badpassword' }, TEST_CONFIG_PATH);
+    const config = editConfig({ shield: false, password: 'badpassword' });
 
-    const config = readConfig(TEST_CONFIG_PATH);
     expect(config.shield).toBe(true);
 });
 
@@ -142,9 +109,45 @@ test('Should get duration time type', () => {
     expect(getTimeType('10h-18h')).toBe('interval');
 });
 
+test('Should block an app', async () => {
+    editConfig({ blocklist: [{ name: 'chromium' }] });
+
+    const isBlocked = isDistractionBlocked('chromium');
+
+    expect(isBlocked).toBe(true);
+});
+
+test('Should block a distraction with a duration', async () => {
+    const distraction = { name: 'twitter.com', time: '2m' };
+    editConfig({ blocklist: [distraction] });
+
+    const isBlocked = isDistractionBlocked('twitter.com');
+
+    expect(isBlocked).toBe(true);
+});
+
+test('Should block an app with a time-based interval', async () => {
+    const currentDate = new Date('2021-01-01T12:00:00Z');
+    editConfig({ blocklist: [{ name: 'chromium', time: '0h-23h' }] });
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    const isBlocked = isDistractionBlocked('chromium');
+
+    expect(isBlocked).toBe(true);
+});
+
+test('Should not block an app with a time-based interval', async () => {
+    const currentDate = new Date('2021-01-01T22:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+    editConfig({ blocklist: [{ name: 'chromium', time: '0h-20h' }] });
+
+    const isBlocked = isDistractionBlocked('chromium');
+
+    expect(isBlocked).toBe(false);
+});
+
 test('Should block a specific subdomain', async () => {
-    const config = { blocklist: [{ name: 'www.example.com' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: 'www.example.com' }] });
 
     expect(isDistractionBlocked('www.example.com')).toBe(true);
     expect(isDistractionBlocked('example.com')).toBe(false);
@@ -152,8 +155,7 @@ test('Should block a specific subdomain', async () => {
 
 test('Should block a distraction with a time-based interval', async () => {
     const currentDate = new Date('2021-01-01T12:00:00Z');
-    const config = { blocklist: [{ name: 'example.com', time: '0h-23h' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: 'example.com', time: '0h-23h' }] });
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
 
     const isBlocked = isDistractionBlocked('example.com');
@@ -162,8 +164,7 @@ test('Should block a distraction with a time-based interval', async () => {
 });
 
 test('Should block all subdomains of a domain with a wildcard', async () => {
-    const config = { blocklist: [{ name: '*.example.com' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: '*.example.com' }] });
 
     const isBlocked = isDistractionBlocked('www.example.com');
 
@@ -172,8 +173,7 @@ test('Should block all subdomains of a domain with a wildcard', async () => {
 
 test('Should block all subdomains of a domain with a wildcard & a time-based interval', async () => {
     const currentDate = new Date('2021-01-01T12:00:00Z');
-    const config = { blocklist: [{ name: '*.example.com', time: '0h-19h' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: '*.example.com', time: '0h-19h' }] });
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
 
     const isBlocked = isDistractionBlocked('www.example.com');
@@ -183,8 +183,7 @@ test('Should block all subdomains of a domain with a wildcard & a time-based int
 
 test('Should not block a subdomain of a domain with a wildcard & a time-based interval', async () => {
     const currentDate = new Date('2021-01-01T20:00:00Z');
-    const config = { blocklist: [{ name: '*.example.com', time: '0h-19h' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: '*.example.com', time: '0h-19h' }] });
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
 
     const isBlocked = isDistractionBlocked('www.example.com');
@@ -193,8 +192,7 @@ test('Should not block a subdomain of a domain with a wildcard & a time-based in
 });
 
 test('Should block all domains with *.*', async () => {
-    const config = { blocklist: [{ name: '*.*' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: '*.*' }] });
 
     const isBlocked = isDistractionBlocked('example.com');
 
@@ -202,17 +200,15 @@ test('Should block all domains with *.*', async () => {
 });
 
 test('Should block all domains with *.* except for the whitelist', async () => {
-    const config = { blocklist: [{ name: '*.*' }], whitelist: [{ name: 'www.example.com' }] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: '*.*' }], whitelist: [{ name: 'www.example.com' }] });
 
     const isBlocked = isDistractionBlocked('www.example.com');
 
     expect(isBlocked).toBe(false);
 });
 
-test('Shoud not block apps if *.* is in the blocklist', async () => {
-    const config = { blocklist: [{ name: '*.*' }], whitelist: [] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+test('Should not block apps if *.* is in the blocklist', async () => {
+    editConfig({ blocklist: [{ name: '*.*' }] });
 
     const isBlocked = isDistractionBlocked('chromium');
 
@@ -220,8 +216,7 @@ test('Shoud not block apps if *.* is in the blocklist', async () => {
 });
 
 test('Should not block a domain if it is in the whitelist with a wildcard', async () => {
-    const config = { blocklist: [{ name: '*.*' }], whitelist: [{ name: '*.example.com' }] };
-    jest.spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(config));
+    editConfig({ blocklist: [{ name: '*.*' }], whitelist: [{ name: '*.example.com' }] });
 
     const isBlocked = isDistractionBlocked('www.example.com');
 
@@ -233,9 +228,52 @@ test('Should remove a distraction from blocklist if timeout is reached and shiel
         shield: true,
         blocklist: [{ name: 'chromium' }, { name: '*.*', timeout: 1708617136 }],
         passwordHash: 'd97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b',
-    }, TEST_CONFIG_PATH);
+    });
 
-    editConfig({ blocklist: [{ name: 'chromium' }] }, TEST_CONFIG_PATH);
+    const { blocklist } = editConfig({ blocklist: [{ name: 'chromium' }] });
 
-    expect(readConfig(TEST_CONFIG_PATH).blocklist).toEqual([{ name: 'chromium' }]);
+    expect(blocklist).toEqual([{ name: 'chromium' }]);
+});
+
+test('Should check if a time is within an interval', async () => {
+    const currentDate = new Date('2021-01-01T12:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    expect(isWithinTimeRange('0h-23h')).toBe(true);
+    expect(isWithinTimeRange('0h-19h')).toBe(true);
+    expect(isWithinTimeRange('20h-23h')).toBe(false);
+});
+
+test('Should check distraction value', async () => {
+    expect(isValidDistraction({ name: '' })).toBe(false);
+    expect(isValidDistraction({ name: '*' })).toBe(false);
+    expect(isValidDistraction({ name: '*.*' })).toBe(true);
+    expect(isValidDistraction({ name: '*.example.com' })).toBe(true);
+    expect(isValidDistraction({ name: 'example.com' })).toBe(true);
+    expect(isValidDistraction({ name: 'chromium' })).toBe(true);
+    expect(isValidDistraction({ name: 'chromium', time: 'badtime' })).toBe(false);
+    expect(isValidDistraction({ name: 'chromium', time: '1m' })).toBe(true);
+    expect(isValidDistraction({ name: 'inexistent' })).toBe(false);
+});
+
+test('Should run isDistractionBlocked in less than 150ms with a large blocklist', async () => {
+    editConfig({ blocklist: Array.from({ length: 500000 }, (_, i) => ({ name: `${i + 1}.com` })) });
+
+    isDistractionBlocked('example.com');
+
+    const start = process.hrtime();
+    isDistractionBlocked('example.com');
+    const end = process.hrtime(start);
+
+    expect(end[1] / 1000000).toBeLessThan(150);
+});
+
+test('Should run getRunningBlockedApps in less than 100ms with a large blocklist', async () => {
+    editConfig({ blocklist: Array.from({ length: 500000 }, (_, i) => ({ name: `${i + 1}.com` })) });
+
+    const start = process.hrtime();
+    getRunningBlockedApps();
+    const end = process.hrtime(start);
+
+    expect(end[1] / 1000000).toBeLessThan(100);
 });
