@@ -171,6 +171,14 @@ test('Should block all subdomains of a domain with a wildcard', async () => {
     expect(isBlocked).toBe(true);
 });
 
+test('Should block all subdomains of a domain with a wildcard & a subdomain', async () => {
+    editConfig({ blocklist: [{ name: '*.www.example.com' }] });
+
+    const isBlocked = isDistractionBlocked('www.example.com');
+
+    expect(isBlocked).toBe(true);
+});
+
 test('Should block all subdomains of a domain with a wildcard & a time-based interval', async () => {
     const currentDate = new Date('2021-01-01T12:00:00Z');
     editConfig({ blocklist: [{ name: '*.example.com', time: '0h-19h' }] });

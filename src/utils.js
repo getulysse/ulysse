@@ -214,7 +214,7 @@ export const isWithinTimeRange = (time) => {
 
 export const isDomainBlocked = (domain, rule, rootDomain) => {
     if (!isValidDomain(domain)) return false;
-    return rule === '*.*' || rule === domain || rule === `*.${rootDomain}`;
+    return rule === '*.*' || rule === domain || rule === `*.${rootDomain}` || rule === `*.${domain}`;
 };
 
 export const isDistractionBlocked = (distraction) => {
