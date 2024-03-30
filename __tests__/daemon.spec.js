@@ -4,6 +4,12 @@ import * as Utils from '../src/utils';
 
 jest.mock('../src/utils');
 
+jest.mock('dgram', () => ({
+    createSocket: jest.fn().mockReturnThis(),
+    bind: jest.fn().mockReturnThis(),
+    on: jest.fn(),
+}));
+
 jest.mock('net', () => ({
     createServer: jest.fn().mockReturnThis(),
     listen: jest.fn().mockReturnThis(),
