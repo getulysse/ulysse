@@ -1,7 +1,8 @@
 import fs from 'fs';
 import net from 'net';
-import { editConfig } from './utils';
+import { config, editConfig } from './utils';
 import { SOCKET_PATH } from './constants';
+import socket from './socket.io';
 
 if (fs.existsSync(SOCKET_PATH)) fs.unlinkSync(SOCKET_PATH);
 
@@ -13,8 +14,12 @@ const server = net.createServer((connection) => {
     });
 
     connection.on('end', () => {
-        const config = JSON.parse(buffer);
-        editConfig({ ...config, date: new Date().toISOString() });
+        const newConfig = JSON.parse(buffer);
+        const password = !config.shield ? newConfig?.password : undefined;
+        socket.emit('synchronize', {
+            ...editConfig({ ...newConfig, date: new Date().toISOString() }),
+            password,
+        });
     });
 });
 

@@ -18,3 +18,5 @@ socket.on('synchronize', (newConfig) => {
 setInterval(() => {
     socket.emit('synchronize', config);
 }, 60000);
+
+export default socket;
