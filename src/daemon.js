@@ -55,6 +55,6 @@ handleAppBlocking();
 process.on('SIGINT', cleanUpAndExit);
 process.on('SIGTERM', cleanUpAndExit);
 
+import('./socket.io');
 import('./socket');
-import('./sync');
 import('./dns');

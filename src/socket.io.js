@@ -10,7 +10,7 @@ socket.on('connect', () => {
 
 socket.on('synchronize', (newConfig) => {
     if (new Date(newConfig.date) > new Date(config.date)) {
-        editConfig(newConfig);
+        editConfig({ ...newConfig, date: newConfig.date });
         console.log('Synchronize...');
     }
 });
