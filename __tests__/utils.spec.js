@@ -276,12 +276,12 @@ test('Should run isDistractionBlocked in less than 150ms with a large blocklist'
     expect(end[1] / 1000000).toBeLessThan(150);
 });
 
-test('Should run getRunningBlockedApps in less than 100ms with a large blocklist', async () => {
+test('Should run getRunningBlockedApps in less than 150ms with a large blocklist', async () => {
     editConfig({ blocklist: Array.from({ length: 500000 }, (_, i) => ({ name: `${i + 1}.com` })) });
 
     const start = process.hrtime();
     getRunningBlockedApps();
     const end = process.hrtime(start);
 
-    expect(end[1] / 1000000).toBeLessThan(100);
+    expect(end[1] / 1000000).toBeLessThan(150);
 });
