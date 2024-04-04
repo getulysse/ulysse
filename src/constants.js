@@ -1,4 +1,4 @@
-export const DEFAULT_CONFIG = process.env.DEFAULT_CONFIG || { shield: false, blocklist: [], whitelist: [], date: new Date().toISOString() };
+export const DEFAULT_CONFIG = process.env.DEFAULT_CONFIG || { shield: false, blocklist: [], whitelist: [], date: new Date('1970').toISOString() };
 
 export const RESOLV_CONF_PATH = process.env.RESOLV_CONF_PATH || '/etc/resolv.conf';
 
