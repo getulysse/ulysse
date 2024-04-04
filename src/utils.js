@@ -15,8 +15,8 @@ import {
 
 export const config = (() => {
     if (!fs.existsSync(CONFIG_PATH)) {
-        fs.mkdirSync(dirname(CONFIG_PATH), { recursive: true });
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
+        fs.mkdirSync(dirname(CONFIG_PATH), { recursive: true }).catch(() => false);
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8').catch(() => false);
     }
 
     return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
