@@ -58,7 +58,7 @@ test('Should not whitelist a distraction if shield mode is enabled', async () =>
 
     const config = editConfig({ whitelist: [distraction] });
 
-    expect(config.whitelist).toEqual(expect.arrayContaining([]));
+    expect(config.whitelist).toEqual([]);
 });
 
 test('Should enable shield mode', async () => {

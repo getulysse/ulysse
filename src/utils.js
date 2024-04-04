@@ -94,7 +94,7 @@ export const removeDuplicates = (arr) => {
 export const editConfig = ({ blocklist = [], whitelist = [], shield, password, passwordHash, date }) => {
     config.date = date || new Date().toISOString();
 
-    config.whitelist = removeDuplicates(config.shield ? [...config.whitelist, ...whitelist] : whitelist);
+    config.whitelist = removeDuplicates(config.shield ? config.whitelist : whitelist);
     config.blocklist = removeDuplicates(config.shield ? [...config.blocklist, ...blocklist] : blocklist);
     config.blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
 
