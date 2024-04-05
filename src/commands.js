@@ -65,6 +65,11 @@ export const whitelistCmd = (name) => {
         return;
     }
 
+    if (!name) {
+        console.log('You must provide a valid distraction.');
+        return;
+    }
+
     whitelistDistraction({ name });
     console.log(`Whitelisting ${name}`);
 };

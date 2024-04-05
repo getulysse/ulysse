@@ -145,7 +145,7 @@ export const getTimeType = (time) => {
 const isValidTime = (time) => getTimeType(time) !== 'unknown';
 
 export const isValidDistraction = (distraction) => {
-    const { name, time } = distraction;
+    const { name = '', time = '' } = distraction;
 
     if (time && !isValidTime(time)) return false;
 
