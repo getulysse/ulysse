@@ -1,6 +1,6 @@
 import fs from 'fs';
 import net from 'net';
-import { config, editConfig } from './utils';
+import { editConfig } from './utils';
 import { SOCKET_PATH } from './constants';
 import socket from './socket.io';
 
@@ -14,11 +14,10 @@ const server = net.createServer((connection) => {
     });
 
     connection.on('end', () => {
-        const newConfig = JSON.parse(buffer);
-        const password = !config.shield ? newConfig?.password : undefined;
+        const config = JSON.parse(buffer);
         socket.emit('synchronize', {
-            ...editConfig({ ...newConfig, date: new Date().toISOString() }),
-            password,
+            ...editConfig({ ...config, date: new Date().toISOString() }),
+            password: config?.password,
         });
     });
 });
