@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 import {
     config,
     isSudo,
@@ -17,7 +17,7 @@ const handleAppBlocking = () => {
     const blockedApps = getRunningBlockedApps();
 
     for (const app of blockedApps) {
-        exec(`kill -9 ${app.pid}`);
+        execSync(`kill -9 ${app.pid}`);
         console.log(`Blocking ${app.name}`);
         sendNotification('Ulysse', `Blocking ${app.name}`);
     }
