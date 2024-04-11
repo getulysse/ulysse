@@ -111,3 +111,9 @@ test('As a user, I cannot whitelist a distraction if shield mode is enabled', as
 
     expect(console.log).toHaveBeenCalledWith('You must disable the shield mode first.');
 });
+
+test('As a user, I cannot whitelist an app with a relative path', async () => {
+    whitelistCmd('signal-desktop');
+
+    expect(console.log).toHaveBeenCalledWith('You must provide a valid distraction.');
+});

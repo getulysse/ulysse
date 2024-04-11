@@ -1,8 +1,10 @@
+import path from 'path';
 import { version } from '../package.json';
 import { HELP_MESSAGE } from './constants';
 import {
     config,
     getParam,
+    isValidDomain,
     enableShieldMode,
     disableShieldMode,
     isValidPassword,
@@ -59,10 +61,16 @@ export const unblockCmd = (name) => {
     console.log(`Unblocking ${name}`);
 };
 
+/* eslint-disable-next-line complexity */
 export const whitelistCmd = (name) => {
     const time = getParam('--time') || getParam('-t');
     const password = getParam('--password') || getParam('-p');
     const distraction = { name, time };
+
+    if (!isValidDomain(name) && !path.isAbsolute(name)) {
+        console.log('You must provide a valid distraction.');
+        return;
+    }
 
     if (isValidPassword(password)) {
         disableShieldMode(password);
