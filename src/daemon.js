@@ -24,14 +24,16 @@ const handleAppBlocking = () => {
 };
 
 const handleTimeout = () => {
-    const blocklist = config?.blocklist.filter(({ timeout }) => {
+    const list = [...config.blocklist, ...config.whitelist];
+
+    const listWithoutTimeout = list.filter(({ timeout }) => {
         if (!timeout) return true;
         return timeout >= Math.floor(Date.now() / 1000);
     });
 
-    if (blocklist?.length === config?.blocklist.length) return;
+    if (listWithoutTimeout.length === list.length) return;
 
-    editConfig({ ...config, blocklist });
+    editConfig(config);
 };
 
 const cleanUpAndExit = () => {

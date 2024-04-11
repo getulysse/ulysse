@@ -60,6 +60,20 @@ export const unblockCmd = (name) => {
 };
 
 export const whitelistCmd = (name) => {
+    const time = getParam('--time') || getParam('-t');
+    const password = getParam('--password') || getParam('-p');
+    const distraction = { name, time };
+
+    if (isValidPassword(password)) {
+        disableShieldMode(password);
+        console.log('Shield mode disabled.');
+        whitelistDistraction(distraction);
+        console.log(`Whitelisting ${name}`);
+        enableShieldMode(password);
+        console.log('Shield mode enabled.');
+        return;
+    }
+
     if (config?.shield) {
         console.log('You must disable the shield mode first.');
         return;
@@ -70,7 +84,7 @@ export const whitelistCmd = (name) => {
         return;
     }
 
-    whitelistDistraction({ name });
+    whitelistDistraction(distraction);
     console.log(`Whitelisting ${name}`);
 };
 

@@ -97,6 +97,7 @@ export const editConfig = ({ blocklist = [], whitelist = [], shield, password, p
     config.whitelist = removeDuplicates(config.shield ? config.whitelist : whitelist);
     config.blocklist = removeDuplicates(config.shield ? [...config.blocklist, ...blocklist] : blocklist);
     config.blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
+    config.whitelist = config.whitelist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
 
     if (isValidPassword(password)) {
         unblockRoot();
@@ -191,6 +192,13 @@ export const unblockDistraction = (distraction) => {
 
 export const whitelistDistraction = (distraction) => {
     config.whitelist.push(distraction);
+    config.whitelist = config.whitelist.map((d) => {
+        if (getTimeType(d.time) === 'duration') {
+            return { ...d, timeout: createTimeout(d.time) };
+        }
+
+        return d;
+    });
     sendDataToSocket(config);
 };
 
@@ -198,6 +206,7 @@ export const getRootDomain = (domain) => domain.split('.').slice(-2).join('.');
 
 export const isDistractionWhitelisted = (distraction) => {
     if (config.whitelist.some((d) => d.name === distraction)) return true;
+    if (config.whitelist.some((d) => d.name === '*')) return true;
     if (config.whitelist.some((d) => d.name === `*.${getRootDomain(distraction)}`)) return true;
 
     return false;
@@ -241,6 +250,7 @@ export const sendNotification = (title, message) => {
 export const getRunningBlockedApps = () => {
     const blockedApps = config.blocklist
         .filter(({ name }) => !isValidDomain(name) && !name.includes('*'))
+        .filter(({ name }) => !isDistractionWhitelisted(name))
         .filter(({ time }) => isWithinTimeRange(time))
         .map(({ name }) => name);
 

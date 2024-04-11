@@ -1,4 +1,4 @@
-import { editConfig } from '../src/utils';
+import { config, editConfig } from '../src/utils';
 import { helpCmd, blockCmd, whitelistCmd, unblockCmd, shieldCmd } from '../src/commands';
 
 jest.mock('net', () => ({
@@ -12,8 +12,11 @@ jest.mock('child_process', () => ({
 }));
 
 beforeEach(() => {
+    process.argv = [];
+    config.blocklist = [];
+    config.whitelist = [];
+    config.shield = false;
     jest.spyOn(console, 'log').mockImplementation(() => {});
-    editConfig({ shield: false, password: 'ulysse', blocklist: [], whitelist: [] });
 });
 
 test('As a user, I can display the help', async () => {
