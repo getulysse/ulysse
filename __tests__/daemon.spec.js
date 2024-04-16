@@ -15,6 +15,10 @@ jest.mock('net', () => ({
     listen: jest.fn().mockReturnThis(),
 }));
 
+jest.mock('child_process', () => ({
+    execSync: jest.fn().mockImplementation(() => false),
+}));
+
 jest.mock('socket.io-client', () => ({
     io: jest.fn(() => ({
         emit: jest.fn(),
@@ -24,7 +28,6 @@ jest.mock('socket.io-client', () => ({
 
 beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(childProcess, 'execSync').mockImplementation(() => {});
     jest.spyOn(Utils, 'isSudo').mockReturnValue(true);
     jest.spyOn(Utils, 'getRunningBlockedApps').mockReturnValue([{ name: 'chromium', pid: 123 }]);
     jest.spyOn(Utils, 'updateResolvConf').mockImplementation(() => {
