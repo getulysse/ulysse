@@ -1,5 +1,4 @@
 import fs from 'fs';
-import childProcess from 'child_process';
 import * as Utils from '../src/utils';
 
 jest.mock('../src/utils');
