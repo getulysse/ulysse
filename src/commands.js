@@ -67,7 +67,7 @@ export const whitelistCmd = (name) => {
     const password = getParam('--password') || getParam('-p');
     const distraction = { name, time };
 
-    if (!isValidDomain(name) && !path.isAbsolute(name)) {
+    if (!isValidDomain(name.replace('*.', '')) && !path.isAbsolute(name)) {
         console.log('You must provide a valid distraction.');
         return;
     }

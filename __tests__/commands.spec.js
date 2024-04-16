@@ -49,6 +49,12 @@ test('As a user, I can whitelist a domain', async () => {
     expect(console.log).toHaveBeenCalledWith('Whitelisting youtube.com');
 });
 
+test('As a user, I can whitelist a domain with a wildcard', async () => {
+    whitelistCmd('*.youtube.com');
+
+    expect(console.log).toHaveBeenCalledWith('Whitelisting *.youtube.com');
+});
+
 test('As a user, I can unblock a domain', async () => {
     unblockCmd('example.com');
 
