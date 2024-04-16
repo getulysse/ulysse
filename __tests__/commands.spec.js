@@ -1,5 +1,5 @@
 import { config, editConfig } from '../src/utils';
-import { helpCmd, blockCmd, whitelistCmd, unblockCmd, shieldCmd } from '../src/commands';
+import { helpCmd, versionCmd, blockCmd, whitelistCmd, unblockCmd, shieldCmd } from '../src/commands';
 
 jest.mock('net', () => ({
     createConnection: jest.fn().mockReturnThis(),
@@ -122,4 +122,10 @@ test('As a user, I cannot whitelist an app with a relative path', async () => {
     whitelistCmd('signal-desktop');
 
     expect(console.log).toHaveBeenCalledWith('You must provide a valid distraction.');
+});
+
+test('As a user, I can display the version of Ulysse', async () => {
+    versionCmd();
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/\d+\.\d+\.\d+/));
 });

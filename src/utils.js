@@ -13,15 +13,6 @@ import {
     RESOLV_CONF_PATH,
 } from './constants';
 
-export const config = (() => {
-    if (!fs.existsSync(CONFIG_PATH)) {
-        fs.mkdirSync(dirname(CONFIG_PATH), { recursive: true }).catch(() => false);
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8').catch(() => false);
-    }
-
-    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-})();
-
 export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
     try {
         return fn(...args);
@@ -33,6 +24,15 @@ export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
         return fallback;
     }
 };
+
+export const config = (tryCatch(() => {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        fs.mkdirSync(dirname(CONFIG_PATH), { recursive: true });
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
+    }
+
+    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+}, DEFAULT_CONFIG))();
 
 export const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
 
