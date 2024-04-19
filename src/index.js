@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { getParam, getAlias, isDaemonRunning } from './utils';
 import * as cmd from './commands';
+import { getParam, getAlias, isDaemonRunning } from './utils';
 
 const commands = {
     '--help': cmd.helpCmd,

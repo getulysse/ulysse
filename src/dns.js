@@ -1,6 +1,6 @@
 import dgram from 'dgram';
 import packet from 'dns-packet';
-import { isDistractionBlocked } from './utils';
+import { isDistractionBlocked } from './block';
 import { DNS_SERVER, DNS_PORT } from './constants';
 
 const server = dgram.createSocket('udp4');

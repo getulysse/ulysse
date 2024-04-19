@@ -1,18 +1,11 @@
 import path from 'path';
+import { config } from './config';
+import { getParam } from './utils';
 import { version } from '../package.json';
 import { HELP_MESSAGE } from './constants';
-import {
-    config,
-    getParam,
-    isValidDomain,
-    enableShieldMode,
-    disableShieldMode,
-    isValidPassword,
-    blockDistraction,
-    isValidDistraction,
-    unblockDistraction,
-    whitelistDistraction,
-} from './utils';
+import { whitelistDistraction } from './whitelist';
+import { isValidPassword, enableShieldMode, disableShieldMode } from './shield';
+import { isValidDistraction, isValidDomain, blockDistraction, unblockDistraction } from './block';
 
 export const helpCmd = () => {
     console.log(HELP_MESSAGE);

@@ -1,48 +1,51 @@
 import fs from 'fs';
-import * as Utils from '../src/utils';
+import { config } from '../src/config';
+import { getRunningApps } from '../src/utils';
+import { blockDistraction } from '../src/block';
+import { handleAppBlocking, handleTimeout, updateResolvConf } from '../src/daemon';
 
-jest.mock('../src/utils');
-
-jest.mock('dgram', () => ({
-    createSocket: jest.fn().mockReturnThis(),
-    bind: jest.fn().mockReturnThis(),
-    on: jest.fn(),
-}));
-
-jest.mock('net', () => ({
-    createServer: jest.fn().mockReturnThis(),
-    listen: jest.fn().mockReturnThis(),
+jest.mock('../src/utils', () => ({
+    ...jest.requireActual('../src/utils'),
+    isSudo: jest.fn().mockImplementation(() => true),
 }));
 
 jest.mock('child_process', () => ({
     execSync: jest.fn().mockImplementation(() => false),
-}));
-
-jest.mock('socket.io-client', () => ({
-    io: jest.fn(() => ({
-        emit: jest.fn(),
-        on: jest.fn(),
-    })),
+    exec: jest.fn().mockImplementation(() => false),
 }));
 
 beforeEach(() => {
+    config.blocklist = [];
+    config.whitelist = [];
+    config.shield = false;
     jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(Utils, 'isSudo').mockReturnValue(true);
-    jest.spyOn(Utils, 'getRunningBlockedApps').mockReturnValue([{ name: 'chromium', pid: 123 }]);
-    jest.spyOn(Utils, 'updateResolvConf').mockImplementation(() => {
-        fs.writeFileSync(process.env.RESOLV_CONF_PATH, 'nameserver 127.0.0.1', 'utf8');
-    });
 });
 
 test('Should block a running app', async () => {
-    await import('../src/daemon');
+    blockDistraction({ name: 'node' });
 
-    expect(console.log).toHaveBeenCalledWith('Blocking chromium');
+    handleAppBlocking();
+
+    expect(console.log).toHaveBeenCalledWith('Blocking node');
+});
+
+test('Should get all running apps', async () => {
+    const apps = getRunningApps();
+
+    expect(JSON.stringify(apps)).toContain('node');
 });
 
 test('Should edit /etc/resolv.conf', async () => {
-    await import('../src/daemon');
+    updateResolvConf('127.0.0.1');
 
     expect(fs.existsSync(process.env.RESOLV_CONF_PATH)).toBe(true);
     expect(fs.readFileSync(process.env.RESOLV_CONF_PATH, 'utf8')).toBe('nameserver 127.0.0.1');
+});
+
+test('Should remove a distraction from blocklist if timeout is reached', async () => {
+    config.blocklist = [{ name: 'chromium' }, { name: 'example.com', timeout: 1708617136 }];
+
+    handleTimeout();
+
+    expect(config.blocklist).toEqual([{ name: 'chromium' }]);
 });
