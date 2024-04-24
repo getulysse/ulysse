@@ -1,9 +1,7 @@
-import fs from 'fs';
-import { config } from './config';
-import { CONFIG_PATH } from './constants';
+import { config, editConfig } from './config';
 import { getRootDomain, removeDuplicates, getTimeType, createTimeout } from './utils';
 
-export const whitelistDistraction = (distraction) => {
+export const whitelistDistraction = async (distraction) => {
     if (config.shield) return;
 
     config.whitelist = removeDuplicates([...config.whitelist, distraction]);
@@ -15,7 +13,7 @@ export const whitelistDistraction = (distraction) => {
         return d;
     });
 
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 4), 'utf8');
+    await editConfig(config);
 };
 
 export const isDistractionWhitelisted = (distraction) => {

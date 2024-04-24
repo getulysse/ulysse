@@ -2,7 +2,7 @@
   "name": "ulysse",
   "author": "johackim",
   "description": "Simple CLI tool for blocking your distracting apps and websites",
-  "homepage": "https://github.com/johackim/ulysse",
+  "homepage": "https://github.com/getulysse/ulysse",
   "license": "GPL-3.0",
   "main": "dist/index.js",
   "version": "0.4.2",
@@ -17,10 +17,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/johackim/ulysse.git"
+    "url": "git+https://github.com/getulysse/ulysse.git"
   },
   "bugs": {
-    "url": "https://github.com/johackim/ulysse/issues"
+    "url": "https://github.com/getulysse/ulysse/issues"
   },
   "keywords": [
     "cli",
@@ -59,9 +59,10 @@
     "prebuild": "rm -rf dist",
     "build": "rollup --bundleConfigAsCjs -c",
     "start": "babel-node src/index.js",
-    "test": "DOTENV_CONFIG_PATH=.env.test jest --runInBand --setupFiles dotenv/config --forceExit"
+    "test": "DOTENV_CONFIG_PATH=.env.test jest -i --setupFiles dotenv/config --forceExit"
   },
   "jest": {
+    "globalSetup": "./jest.setup.js",
     "restoreMocks": true,
     "transformIgnorePatterns": [],
     "transform": {

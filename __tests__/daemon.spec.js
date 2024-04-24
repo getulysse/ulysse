@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { config } from '../src/config';
+import { config, readConfig } from '../src/config';
 import { getRunningApps } from '../src/utils';
 import { blockDistraction } from '../src/block';
 import { handleAppBlocking, handleTimeout, updateResolvConf } from '../src/daemon';
@@ -47,5 +47,5 @@ test('Should remove a distraction from blocklist if timeout is reached', async (
 
     handleTimeout();
 
-    expect(config.blocklist).toEqual([{ name: 'chromium' }]);
+    expect(readConfig().blocklist).toEqual([{ name: 'chromium' }]);
 });

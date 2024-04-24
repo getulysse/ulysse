@@ -1,16 +1,6 @@
 import { config } from '../src/config';
 import { helpCmd, versionCmd, blockCmd, whitelistCmd, unblockCmd, shieldCmd } from '../src/commands';
 
-jest.mock('net', () => ({
-    createConnection: jest.fn().mockReturnThis(),
-    write: jest.fn(),
-    end: jest.fn(),
-}));
-
-jest.mock('child_process', () => ({
-    execSync: jest.fn().mockImplementation(() => false),
-}));
-
 beforeEach(() => {
     process.argv = [];
     config.blocklist = [];

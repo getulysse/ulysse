@@ -4,7 +4,7 @@ import { dirname } from 'path';
 import { isSudo, tryCatch } from './utils';
 import { CONFIG_PATH, DEFAULT_CONFIG, SOCKET_PATH } from './constants';
 
-export const sendDataToSocket = (data) => {
+export const sendDataToSocket = (data) => new Promise((resolve, reject) => {
     const client = net.createConnection(SOCKET_PATH);
 
     if (typeof data === 'object') {
@@ -14,23 +14,33 @@ export const sendDataToSocket = (data) => {
     }
 
     client.end();
-};
 
-export const config = (tryCatch(() => {
+    client.on('end', resolve);
+
+    client.on('error', reject);
+});
+
+export const createConfig = () => {
     if (!fs.existsSync(CONFIG_PATH)) {
         fs.mkdirSync(dirname(CONFIG_PATH), { recursive: true });
         fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4), 'utf8');
     }
+};
 
+export const readConfig = () => {
+    createConfig();
     return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-}, DEFAULT_CONFIG))();
+};
 
-export const editConfig = (newConfig) => {
+export const editConfig = async (newConfig) => {
     if (isSudo()) {
         fs.writeFileSync(CONFIG_PATH, JSON.stringify(newConfig, null, 4), 'utf8');
     } else {
-        sendDataToSocket(newConfig);
+        await sendDataToSocket(newConfig);
     }
-
-    return newConfig;
 };
+
+export const config = (tryCatch(() => {
+    createConfig();
+    return readConfig();
+}, DEFAULT_CONFIG))();

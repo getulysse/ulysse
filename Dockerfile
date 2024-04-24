@@ -1,4 +1,4 @@
-FROM node:18 AS build
+FROM node:20 AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN rm -rf node_modules
 
 RUN yarn install --prod --ignore-optional
 
-FROM gcr.io/distroless/nodejs:18
+FROM gcr.io/distroless/nodejs20
 
 WORKDIR /app
 

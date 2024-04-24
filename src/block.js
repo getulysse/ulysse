@@ -4,7 +4,7 @@ import { isDistractionWhitelisted } from './whitelist';
 import { DOMAIN_REGEX } from './constants';
 import { removeDuplicates, getRootDomain, getTimeType, createTimeout } from './utils';
 
-export const blockDistraction = (distraction) => {
+export const blockDistraction = async (distraction) => {
     config.blocklist = removeDuplicates([...config.blocklist, distraction]);
     config.blocklist = config.blocklist.map((d) => {
         if (getTimeType(d.time) === 'duration') {
@@ -14,15 +14,15 @@ export const blockDistraction = (distraction) => {
         return d;
     });
 
-    editConfig(config);
+    await editConfig(config);
 };
 
-export const unblockDistraction = (distraction) => {
+export const unblockDistraction = async (distraction) => {
     if (config.shield) return;
 
     config.blocklist = config.blocklist.filter(({ name, time }) => JSON.stringify({ name, time }) !== JSON.stringify(distraction));
 
-    editConfig(config);
+    await editConfig(config);
 };
 
 export const isValidDomain = (domain) => DOMAIN_REGEX.test(domain);
