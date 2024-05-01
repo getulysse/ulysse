@@ -19,10 +19,6 @@ export const daemonCmd = () => {
     import('./daemon');
 };
 
-export const serverCmd = () => {
-    import('./server');
-};
-
 export const blockCmd = (name) => {
     const time = getParam('--time') || getParam('-t');
     const distraction = { name, time };

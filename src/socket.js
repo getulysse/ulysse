@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
 import net from 'net';
-import socket from './socket.io';
 import { config } from './config';
 import { removeDuplicates } from './utils';
 import { SOCKET_PATH, CONFIG_PATH } from './constants';
@@ -29,11 +28,6 @@ const editConfig = (newConfig) => {
     }
 
     delete config.password;
-
-    socket.emit('synchronize', {
-        ...config,
-        date: new Date().toISOString(),
-    });
 
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 4), 'utf8');
 };

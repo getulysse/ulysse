@@ -74,7 +74,6 @@ if (process.env.NODE_ENV !== 'test') {
     process.on('SIGINT', cleanUpAndExit);
     process.on('SIGTERM', cleanUpAndExit);
 
-    import('./socket.io');
     import('./socket');
     import('./dns');
 }
