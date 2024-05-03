@@ -1,24 +1,9 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 import { config, editConfig } from './config';
-import { isDistractionWhitelisted } from './whitelist';
-import { isWithinTimeRange, isValidDomain } from './block';
+import { getRunningBlockedApps } from './block';
+import { isSudo, sendNotification } from './utils';
 import { DNS_SERVER, RESOLV_CONF_PATH } from './constants';
-import { isSudo, sendNotification, getRunningApps } from './utils';
-
-export const getRunningBlockedApps = () => {
-    const blockedApps = config.blocklist
-        .filter(({ name }) => !isValidDomain(name) && !name.includes('*'))
-        .filter(({ name }) => !isDistractionWhitelisted(name))
-        .filter(({ time }) => isWithinTimeRange(time))
-        .map(({ name }) => name);
-
-    const runningBlockedApps = getRunningApps()
-        .filter((a) => blockedApps?.includes(a.cmd) || blockedApps?.includes(a.bin) || blockedApps?.includes(a.name))
-        .map((p) => ({ ...p, name: blockedApps.find((b) => b === p.cmd || b === p.name) }));
-
-    return runningBlockedApps || [];
-};
 
 export const updateResolvConf = (dnsServer = DNS_SERVER) => {
     execSync(`chattr -i ${RESOLV_CONF_PATH}`);
@@ -27,9 +12,9 @@ export const updateResolvConf = (dnsServer = DNS_SERVER) => {
 };
 
 export const handleAppBlocking = () => {
-    const blockedApps = getRunningBlockedApps();
+    const runningBlockedApps = getRunningBlockedApps();
 
-    for (const app of blockedApps) {
+    for (const app of runningBlockedApps) {
         try {
             execSync(`kill -9 ${app.pid} > /dev/null 2>&1`);
             console.log(`Blocking ${app.name}`);

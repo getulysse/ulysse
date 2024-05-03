@@ -2,7 +2,7 @@ import fs from 'fs';
 import { config, editConfig } from './config';
 import { isDistractionWhitelisted } from './whitelist';
 import { DOMAIN_REGEX } from './constants';
-import { removeDuplicates, getRootDomain, getTimeType, createTimeout } from './utils';
+import { removeDuplicates, getRootDomain, getRunningApps, getTimeType, createTimeout } from './utils';
 
 export const blockDistraction = async (distraction) => {
     config.blocklist = removeDuplicates([...config.blocklist, distraction]);
@@ -75,4 +75,23 @@ export const isValidDistraction = (distraction) => {
     }
 
     return isValidDomain(name) || isValidApp(name);
+};
+
+export const getBlockedApps = () => {
+    const { blocklist } = config;
+
+    return blocklist
+        .filter(({ name }) => !isValidDomain(name) && !name.includes('*'))
+        .filter(({ name }) => !isDistractionWhitelisted(name))
+        .filter(({ time }) => isWithinTimeRange(time))
+        .map(({ name }) => name);
+};
+
+export const getRunningBlockedApps = () => {
+    const runningApps = getRunningApps();
+    const blockedApps = getBlockedApps();
+
+    return runningApps
+        .filter((a) => blockedApps?.includes(a.cmd) || blockedApps?.includes(a.bin) || blockedApps?.includes(a.name))
+        .map(({ pid, cmd, name }) => ({ pid: Number(pid), name: blockedApps.find((b) => b === cmd || b === name) }));
 };
