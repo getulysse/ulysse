@@ -17,7 +17,7 @@ beforeEach(() => {
 
 test('Should check a distraction', async () => {
     expect(isValidDistraction({ name: '' })).toBe(false);
-    expect(isValidDistraction({ name: '*' })).toBe(false);
+    expect(isValidDistraction({ name: '*' })).toBe(true);
     expect(isValidDistraction({ name: '*.*' })).toBe(true);
     expect(isValidDistraction({ name: '*.example.com' })).toBe(true);
     expect(isValidDistraction({ name: 'example.com' })).toBe(true);
@@ -160,4 +160,17 @@ test('Should get running blocked apps', () => {
     const runningBlockedApps = getRunningBlockedApps();
 
     expect(runningBlockedApps).toContainEqual({ name: 'node', pid: expect.any(Number) });
+});
+
+test('Should block all apps and websites', async () => {
+    await blockDistraction({ name: '*' });
+
+    expect(isDistractionBlocked('example.com')).toEqual(true);
+    expect(isDistractionBlocked('node')).toEqual(true);
+});
+
+test('Should not block system process', async () => {
+    blockDistraction({ name: '*' });
+
+    expect(isDistractionBlocked('/usr/bin/startx')).toBe(false);
 });

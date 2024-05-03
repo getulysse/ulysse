@@ -12,6 +12,40 @@ export const DNS_PORT = process.env.DNS_PORT || 53;
 
 export const DOMAIN_REGEX = /^([\w-]+\.)+[\w-]+$/;
 
+export const SYSTEM_WHITELIST = [
+    '/sbin/init',
+    '/sbin/agetty',
+    '/usr/bin/xinit',
+    '/usr/bin/login',
+    '/usr/bin/startx',
+    '/usr/lib/Xorg',
+    '/usr/bin/dbus-broker-launch',
+    '/usr/bin/dbus-broker',
+    '/usr/lib/at-spi-bus-launcher',
+    '/usr/lib/at-spi2-registryd',
+    '/usr/lib/systemd/systemd',
+    '/usr/lib/systemd/systemd-udevd',
+    '/usr/lib/systemd/systemd-timesyncd',
+    '/usr/lib/systemd/systemd-journald',
+    '/usr/lib/systemd/systemd-logind',
+    '/usr/lib/upowerd',
+    '/usr/bin/journalctl',
+    '/usr/bin/sudo',
+    '/usr/bin/NetworkManager',
+    '/usr/bin/wpa_supplicant',
+    '/usr/bin/containerd',
+    '/usr/bin/wireplumber',
+    '/usr/bin/pipewire-pulse',
+    '/usr/bin/pipewire',
+    '/usr/bin/chattr',
+    '/usr/sbin/crond',
+    '/usr/lib/systemd/systemd-hostnamed',
+    '/usr/lib/bluetooth/bluetoothd',
+    '/usr/bin/zsh',
+    '/bin/bash',
+    '/bin/sh',
+];
+
 export const HELP_MESSAGE = `Usage: ulysse [OPTIONS]
 
   Ulysse: A simple and powerful tool to block your distracting apps and websites.

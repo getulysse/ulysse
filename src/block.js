@@ -47,6 +47,8 @@ export const isDistractionBlocked = (distraction) => {
     const rootDomain = getRootDomain(distraction);
     const { blocklist } = config;
 
+    if (blocklist.some(({ name }) => name === '*')) return true;
+
     return blocklist.some(({ name, time }) => (name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
 };
 
@@ -67,7 +69,7 @@ export const isValidDistraction = (distraction) => {
 
     if (time && !isValidTime(time)) return false;
 
-    if (name === '*.*') return true;
+    if (['*.*', '*'].includes(name)) return true;
 
     if (name.includes('*.')) {
         const [, domain] = name.split('*.');
@@ -81,7 +83,7 @@ export const getBlockedApps = () => {
     const { blocklist } = config;
 
     return blocklist
-        .filter(({ name }) => !isValidDomain(name) && !name.includes('*'))
+        .filter(({ name }) => !isValidDomain(name))
         .filter(({ name }) => !isDistractionWhitelisted(name))
         .filter(({ time }) => isWithinTimeRange(time))
         .map(({ name }) => name);
