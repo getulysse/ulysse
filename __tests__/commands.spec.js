@@ -1,11 +1,13 @@
-import { config } from '../src/config';
+import { config, editConfig } from '../src/config';
+import { DEFAULT_CONFIG } from '../src/constants';
+import { disableShieldMode } from '../src/shield';
 import { helpCmd, versionCmd, blockCmd, whitelistCmd, unblockCmd, shieldCmd } from '../src/commands';
 
-beforeEach(() => {
+beforeEach(async () => {
     process.argv = [];
-    config.blocklist = [];
-    config.whitelist = [];
-    config.shield = false;
+    await disableShieldMode('ulysse');
+    await editConfig(DEFAULT_CONFIG);
+    Object.assign(config, DEFAULT_CONFIG);
     jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 
@@ -106,7 +108,9 @@ test('Should whitelist a domain with a wildcard', async () => {
 });
 
 test('Should enable shield mode', async () => {
-    shieldCmd();
+    process.argv = ['ulysse', '-s', 'on', '-p', 'ulysse'];
+
+    shieldCmd('on');
 
     expect(console.log).toHaveBeenCalledWith('Shield mode enabled.');
 });

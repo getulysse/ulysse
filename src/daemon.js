@@ -4,6 +4,9 @@ import { config, editConfig } from './config';
 import { getRunningBlockedApps } from './block';
 import { isSudo, sendNotification } from './utils';
 import { DNS_SERVER, RESOLV_CONF_PATH } from './constants';
+import { synchronize } from './synchronize';
+import { socket } from './socket';
+import { dns } from './dns';
 
 export const updateResolvConf = (dnsServer = DNS_SERVER) => {
     execSync(`chattr -i ${RESOLV_CONF_PATH}`);
@@ -25,11 +28,13 @@ export const handleAppBlocking = () => {
     }
 };
 
-export const handleTimeout = () => {
-    config.blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
-    config.whitelist = config.whitelist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
+export const handleTimeout = async () => {
+    const blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
+    const whitelist = config.whitelist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
 
-    editConfig(config);
+    if (blocklist.length !== config.blocklist.length || whitelist.length !== config.whitelist.length) {
+        await editConfig({ ...config, blocklist, whitelist });
+    }
 };
 
 export const cleanUpAndExit = () => {
@@ -37,12 +42,12 @@ export const cleanUpAndExit = () => {
     process.exit(0);
 };
 
-if (!isSudo()) {
-    console.error('You must run this command with sudo.');
-    process.exit(1);
-}
+export const daemon = () => {
+    if (!isSudo()) {
+        console.error('You must run this command with sudo.');
+        process.exit(1);
+    }
 
-if (process.env.NODE_ENV !== 'test') {
     setInterval(() => {
         handleAppBlocking();
     }, 1000);
@@ -53,12 +58,11 @@ if (process.env.NODE_ENV !== 'test') {
 
     console.log('Starting daemon...');
     updateResolvConf('127.0.0.1');
-    handleTimeout();
-    handleAppBlocking();
 
     process.on('SIGINT', cleanUpAndExit);
     process.on('SIGTERM', cleanUpAndExit);
 
-    import('./socket');
-    import('./dns');
-}
+    synchronize();
+    socket();
+    dns();
+};

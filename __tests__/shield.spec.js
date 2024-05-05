@@ -1,9 +1,13 @@
-import { readConfig } from '../src/config';
+import { config, readConfig, editConfig } from '../src/config';
+import { DEFAULT_CONFIG } from '../src/constants';
 import { whitelistDistraction } from '../src/whitelist';
 import { enableShieldMode, disableShieldMode } from '../src/shield';
 import { blockDistraction, unblockDistraction } from '../src/block';
 
-beforeEach(() => {
+beforeEach(async () => {
+    await disableShieldMode('ulysse');
+    await editConfig(DEFAULT_CONFIG);
+    Object.assign(config, DEFAULT_CONFIG);
     jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 

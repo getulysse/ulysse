@@ -33,11 +33,7 @@ export const readConfig = () => {
 };
 
 export const editConfig = async (newConfig) => {
-    if (isSudo()) {
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(newConfig, null, 4), 'utf8');
-    } else {
-        await sendDataToSocket(newConfig);
-    }
+    await sendDataToSocket(newConfig);
 };
 
 export const config = (tryCatch(() => {

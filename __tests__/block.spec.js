@@ -1,4 +1,6 @@
-import { config, readConfig } from '../src/config';
+import { config, editConfig, readConfig } from '../src/config';
+import { DEFAULT_CONFIG } from '../src/constants';
+import { disableShieldMode } from '../src/shield';
 import {
     getBlockedApps,
     blockDistraction,
@@ -9,10 +11,11 @@ import {
     getRunningBlockedApps,
 } from '../src/block';
 
-beforeEach(() => {
-    config.blocklist = [];
-    config.whitelist = [];
-    config.shield = false;
+beforeEach(async () => {
+    await disableShieldMode('ulysse');
+    await editConfig(DEFAULT_CONFIG);
+    Object.assign(config, DEFAULT_CONFIG);
+    jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 
 test('Should check a distraction', async () => {

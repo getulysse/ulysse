@@ -6,6 +6,7 @@ import { HELP_MESSAGE } from './constants';
 import { whitelistDistraction } from './whitelist';
 import { isValidPassword, enableShieldMode, disableShieldMode } from './shield';
 import { isValidDistraction, isValidDomain, blockDistraction, unblockDistraction } from './block';
+import { daemon } from './daemon';
 
 export const helpCmd = () => {
     console.log(HELP_MESSAGE);
@@ -16,7 +17,7 @@ export const versionCmd = () => {
 };
 
 export const daemonCmd = () => {
-    import('./daemon');
+    daemon();
 };
 
 export const blockCmd = (name) => {

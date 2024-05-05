@@ -1,7 +1,9 @@
 import fs from 'fs';
-import { config, readConfig } from '../src/config';
+import { config, editConfig, readConfig } from '../src/config';
 import { getRunningApps } from '../src/utils';
 import { blockDistraction } from '../src/block';
+import { DEFAULT_CONFIG } from '../src/constants';
+import { disableShieldMode } from '../src/shield';
 import { handleAppBlocking, handleTimeout, updateResolvConf } from '../src/daemon';
 
 jest.mock('../src/utils', () => ({
@@ -14,10 +16,10 @@ jest.mock('child_process', () => ({
     exec: jest.fn().mockImplementation(() => false),
 }));
 
-beforeEach(() => {
-    config.blocklist = [];
-    config.whitelist = [];
-    config.shield = false;
+beforeEach(async () => {
+    await disableShieldMode('ulysse');
+    await editConfig(DEFAULT_CONFIG);
+    Object.assign(config, DEFAULT_CONFIG);
     jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 
@@ -45,7 +47,7 @@ test('Should edit /etc/resolv.conf', async () => {
 test('Should remove a distraction from blocklist if timeout is reached', async () => {
     config.blocklist = [{ name: 'chromium' }, { name: 'example.com', timeout: 1708617136 }];
 
-    handleTimeout();
+    await handleTimeout();
 
     expect(readConfig().blocklist).toEqual([{ name: 'chromium' }]);
 });

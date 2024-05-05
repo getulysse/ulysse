@@ -6,6 +6,8 @@ export const CONFIG_PATH = process.env.CONFIG_PATH || '/etc/ulysse/config.json';
 
 export const SOCKET_PATH = process.env.SOCKET_PATH || '/var/run/ulysse.sock';
 
+export const GUN_SERVER = process.env.GUN_SERVER || 'http://localhost:8765/gun';
+
 export const DNS_SERVER = process.env.DNS_SERVER || '9.9.9.9';
 
 export const DNS_PORT = process.env.DNS_PORT || 53;
@@ -13,6 +15,7 @@ export const DNS_PORT = process.env.DNS_PORT || 53;
 export const DOMAIN_REGEX = /^([\w-]+\.)+[\w-]+$/;
 
 export const SYSTEM_WHITELIST = [
+    new URL(GUN_SERVER).hostname,
     '/sbin/init',
     '/sbin/agetty',
     '/usr/bin/xinit',
