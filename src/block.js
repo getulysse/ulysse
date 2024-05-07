@@ -82,10 +82,12 @@ export const isValidDistraction = (distraction) => {
 export const getBlockedApps = () => {
     const { blocklist } = config;
 
+    const isApp = (name) => !isValidDomain(name);
+
     return blocklist
-        .filter(({ name }) => !isValidDomain(name))
-        .filter(({ name }) => !isDistractionWhitelisted(name))
+        .filter(({ name }) => isApp(name))
         .filter(({ time }) => isWithinTimeRange(time))
+        .filter(({ name }) => !isDistractionWhitelisted(name))
         .map(({ name }) => name);
 };
 
@@ -93,7 +95,11 @@ export const getRunningBlockedApps = () => {
     const runningApps = getRunningApps();
     const blockedApps = getBlockedApps();
 
-    return runningApps
-        .filter((a) => blockedApps?.includes(a.cmd) || blockedApps?.includes(a.bin) || blockedApps?.includes(a.name))
-        .map(({ pid, cmd, name }) => ({ pid: Number(pid), name: blockedApps.find((b) => b === cmd || b === name) }));
+    if (blockedApps.includes('*')) {
+        return runningApps.filter(({ name }) => !isDistractionWhitelisted(name));
+    }
+
+    const isBlockedApp = (app) => blockedApps.includes(app.name) || blockedApps.includes(app.bin) || blockedApps.includes(app.cmd);
+
+    return runningApps.filter(isBlockedApp);
 };

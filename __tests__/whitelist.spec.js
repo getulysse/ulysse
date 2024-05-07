@@ -2,7 +2,7 @@ import { config, readConfig, editConfig } from '../src/config';
 import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
 import { blockDistraction, isDistractionBlocked } from '../src/block';
-import { whitelistDistraction } from '../src/whitelist';
+import { isDistractionWhitelisted, whitelistDistraction } from '../src/whitelist';
 
 beforeEach(async () => {
     await disableShieldMode('ulysse');
@@ -31,4 +31,10 @@ test('Should not block a domain if it is in the whitelist with a wildcard', asyn
     await whitelistDistraction({ name: '*.example.com' });
 
     expect(isDistractionBlocked('www.example.com')).toBe(false);
+});
+
+test('Should not block a process from the system whitelist', async () => {
+    await blockDistraction({ name: '*' });
+
+    expect(isDistractionWhitelisted('systemd')).toBe(true);
 });

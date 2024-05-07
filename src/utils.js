@@ -100,8 +100,8 @@ export const getRunningApps = tryCatch(() => {
         const cmd = fs.readFileSync(`/proc/${folder}/cmdline`, 'utf8').split('\u0000').join(' ').trim();
         const bin = cmd.split(' ').shift();
 
-        return { pid: folder, cmd, name, bin };
-    }).filter((p) => p.name);
+        return { pid: Number(folder), cmd, name, bin };
+    }).filter((p) => p.name && p.cmd && p.bin);
 }, []);
 
 export const isDaemonRunning = () => {

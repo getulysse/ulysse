@@ -162,7 +162,12 @@ test('Should get running blocked apps', () => {
 
     const runningBlockedApps = getRunningBlockedApps();
 
-    expect(runningBlockedApps).toContainEqual({ name: 'node', pid: expect.any(Number) });
+    expect(runningBlockedApps).toContainEqual({
+        name: 'node',
+        pid: expect.any(Number),
+        cmd: expect.any(String),
+        bin: expect.any(String),
+    });
 });
 
 test('Should block all apps and websites', async () => {
@@ -170,10 +175,18 @@ test('Should block all apps and websites', async () => {
 
     expect(isDistractionBlocked('example.com')).toEqual(true);
     expect(isDistractionBlocked('node')).toEqual(true);
+    expect(getRunningBlockedApps()).toContainEqual({
+        name: 'node',
+        pid: expect.any(Number),
+        cmd: expect.any(String),
+        bin: expect.any(String),
+    });
 });
 
 test('Should not block system process', async () => {
     blockDistraction({ name: '*' });
 
-    expect(isDistractionBlocked('/usr/bin/startx')).toBe(false);
+    const runningBlockedApps = JSON.stringify(getRunningBlockedApps());
+
+    expect(runningBlockedApps).not.toContain('/sbin/init');
 });
