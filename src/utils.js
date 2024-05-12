@@ -65,7 +65,12 @@ export const displayPrompt = async (message) => {
 
 export const getParam = (key) => {
     const index = process.argv.indexOf(key);
-    return index !== -1 ? process.argv[index + 1] : undefined;
+
+    if (index === -1) return undefined;
+
+    if (['--force', '-f'].includes(key) && index !== -1) return true;
+
+    return process.argv[index + 1];
 };
 
 export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000)) => {

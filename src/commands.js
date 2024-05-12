@@ -21,9 +21,10 @@ export const daemonCmd = () => {
 
 export const blockCmd = (name) => {
     const time = getParam('--time') || getParam('-t');
+    const force = getParam('--force') || getParam('-f');
     const distraction = { name, time };
 
-    if (!isValidDistraction(distraction)) {
+    if (!force && !isValidDistraction(distraction)) {
         console.log('You must provide a valid distraction.');
         return;
     }
@@ -53,10 +54,11 @@ export const unblockCmd = (name) => {
 /* eslint-disable-next-line complexity */
 export const whitelistCmd = (name) => {
     const time = getParam('--time') || getParam('-t');
+    const force = getParam('--force') || getParam('-f');
     const password = getParam('--password') || getParam('-p');
     const distraction = { name, time };
 
-    if (!isValidDistraction(distraction)) {
+    if (!force && !isValidDistraction(distraction)) {
         console.log('You must provide a valid distraction.');
         return;
     }

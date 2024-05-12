@@ -124,3 +124,10 @@ test('Should disable shield mode', async () => {
 
     expect(console.log).toHaveBeenCalledWith('Shield mode disabled.');
 });
+
+test('Should force the whitelist of a distraction', async () => {
+    process.argv = ['ulysse', '-w', 'xdg-desktop-portal', '-f'];
+    whitelistCmd('xdg-desktop-portal');
+
+    expect(console.log).toHaveBeenCalledWith('Whitelisting xdg-desktop-portal');
+});

@@ -30,3 +30,9 @@ test('Should get a parameter from the command line', async () => {
     expect(getParam('--time')).toBe('30m');
     expect(getParam('-w')).toBe('example.com');
 });
+
+test('Should get a -f parameter without value', async () => {
+    process.argv = ['ulysse', '-f', '-w', 'example.com'];
+    expect(getParam('-w')).toBe('example.com');
+    expect(getParam('-f')).toBe(true);
+});
