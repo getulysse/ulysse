@@ -7,12 +7,14 @@ import { removeDuplicates } from './utils';
 import { SOCKET_PATH, CONFIG_PATH, GUN_SERVER } from './constants';
 import { blockRoot, unblockRoot, isValidPassword } from './shield';
 
+const removeTimeouts = (list) => list.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
+
 const editConfig = (newConfig) => {
     const { blocklist = [], whitelist = [], date, shield, password, passwordHash } = newConfig;
 
     config.date = date;
-    config.whitelist = removeDuplicates(config.shield ? config.whitelist : whitelist);
-    config.blocklist = removeDuplicates(config.shield ? [...config.blocklist, ...blocklist] : blocklist);
+    config.whitelist = removeTimeouts(removeDuplicates(config.shield ? config.whitelist : whitelist));
+    config.blocklist = removeTimeouts(removeDuplicates(config.shield ? [...config.blocklist, ...blocklist] : blocklist));
 
     if (isValidPassword(password)) {
         unblockRoot();

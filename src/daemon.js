@@ -29,11 +29,10 @@ export const handleAppBlocking = () => {
 };
 
 export const handleTimeout = async () => {
-    const blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
-    const whitelist = config.whitelist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
+    const lists = [...config.blocklist, ...config.whitelist].filter(({ timeout }) => timeout <= Math.floor(Date.now() / 1000));
 
-    if (blocklist.length !== config.blocklist.length || whitelist.length !== config.whitelist.length) {
-        await editConfig({ ...config, blocklist, whitelist });
+    if (lists.length) {
+        await editConfig(config);
     }
 };
 

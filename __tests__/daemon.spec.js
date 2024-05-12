@@ -51,3 +51,12 @@ test('Should remove a distraction from blocklist if timeout is reached', async (
 
     expect(readConfig().blocklist).toEqual([{ name: 'chromium' }]);
 });
+
+test('Should execute handleTimeout() if shield mode is enabled', async () => {
+    config.shield = true;
+    config.blocklist = [{ name: 'example.com', timeout: 1708617136 }];
+
+    await handleTimeout();
+
+    expect(readConfig().blocklist).toEqual([]);
+});
