@@ -2,7 +2,7 @@ import fs from 'fs';
 import { config, editConfig } from './config';
 import { isDistractionWhitelisted } from './whitelist';
 import { DOMAIN_REGEX } from './constants';
-import { removeDuplicates, getRootDomain, getRunningApps, getTimeType, createTimeout } from './utils';
+import { removeDuplicates, getRootDomain, getRunningApps, getTimeType, createTimeout, isWithinTimeRange } from './utils';
 
 export const blockDistraction = async (distraction) => {
     config.blocklist = removeDuplicates([...config.blocklist, distraction]);
@@ -32,22 +32,13 @@ export const isDomainBlocked = (domain, rule, rootDomain) => {
     return rule === '*.*' || rule === domain || rule === `*.${rootDomain}` || rule === `*.${domain}`;
 };
 
-export const isWithinTimeRange = (time) => {
-    if (!time || getTimeType(time) !== 'interval') return true;
-
-    const [start, end] = time.split('-').map((t) => parseInt(t, 10));
-    const hour = new Date().getHours();
-
-    return hour >= start && hour < end;
-};
-
 export const isDistractionBlocked = (distraction) => {
     if (isDistractionWhitelisted(distraction)) return false;
 
     const rootDomain = getRootDomain(distraction);
     const { blocklist } = config;
 
-    if (blocklist.some(({ name }) => name === '*')) return true;
+    if (blocklist.some(({ name, time }) => name === '*' && isWithinTimeRange(time))) return true;
 
     return blocklist.some(({ name, time }) => (name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
 };

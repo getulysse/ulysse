@@ -4,7 +4,6 @@ import { disableShieldMode } from '../src/shield';
 import {
     getBlockedApps,
     blockDistraction,
-    isWithinTimeRange,
     unblockDistraction,
     isValidDistraction,
     isDistractionBlocked,
@@ -28,15 +27,6 @@ test('Should check a distraction', async () => {
     expect(isValidDistraction({ name: 'chromium', time: 'badtime' })).toBe(false);
     expect(isValidDistraction({ name: 'chromium', time: '1m' })).toBe(true);
     expect(isValidDistraction({ name: 'inexistent' })).toBe(false);
-});
-
-test('Should check if a time is within an interval', async () => {
-    const currentDate = new Date('2021-01-01T12:00:00Z');
-    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
-
-    expect(isWithinTimeRange('0h-23h')).toBe(true);
-    expect(isWithinTimeRange('0h-19h')).toBe(true);
-    expect(isWithinTimeRange('20h-23h')).toBe(false);
 });
 
 test('Should block a distraction', async () => {
@@ -189,4 +179,13 @@ test('Should not block system process', async () => {
     const runningBlockedApps = JSON.stringify(getRunningBlockedApps());
 
     expect(runningBlockedApps).not.toContain('/sbin/init');
+});
+
+test('Should not block all websites outside of a time range', async () => {
+    const currentDate = new Date('2021-01-01T12:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    await blockDistraction({ name: '*', time: '0h-2h' });
+
+    expect(isDistractionBlocked('example.com')).toEqual(false);
 });

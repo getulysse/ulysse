@@ -89,6 +89,15 @@ export const getTimeType = (time) => {
     return 'unknown';
 };
 
+export const isWithinTimeRange = (time) => {
+    if (!time || getTimeType(time) !== 'interval') return true;
+
+    const [start, end] = time.split('-').map((t) => parseInt(t, 10));
+    const hour = new Date().getHours();
+
+    return hour >= start && hour < end;
+};
+
 export const getRunningApps = tryCatch(() => {
     const folders = fs.readdirSync('/proc').filter((f) => !Number.isNaN(Number(f)));
 

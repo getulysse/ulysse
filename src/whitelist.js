@@ -1,6 +1,6 @@
 import { config, editConfig } from './config';
 import { SYSTEM_WHITELIST } from './constants';
-import { getRootDomain, removeDuplicates, getTimeType, createTimeout } from './utils';
+import { getRootDomain, removeDuplicates, getTimeType, createTimeout, isWithinTimeRange } from './utils';
 
 export const whitelistDistraction = async (distraction) => {
     if (config.shield) return;
@@ -18,10 +18,10 @@ export const whitelistDistraction = async (distraction) => {
 };
 
 export const isDistractionWhitelisted = (distraction) => {
-    if (SYSTEM_WHITELIST.some((d) => d === distraction)) return true;
-    if (config.whitelist.some((d) => d.name === distraction)) return true;
-    if (config.whitelist.some((d) => d.name === '*')) return true;
-    if (config.whitelist.some((d) => d.name === `*.${getRootDomain(distraction)}`)) return true;
+    if (SYSTEM_WHITELIST.some((d) => d === distraction && isWithinTimeRange(d.time))) return true;
+    if (config.whitelist.some((d) => d.name === distraction && isWithinTimeRange(d.time))) return true;
+    if (config.whitelist.some((d) => d.name === '*' && isWithinTimeRange(d.time))) return true;
+    if (config.whitelist.some((d) => d.name === `*.${getRootDomain(distraction)}` && isWithinTimeRange(d.time))) return true;
 
     return false;
 };

@@ -38,3 +38,13 @@ test('Should not block a process from the system whitelist', async () => {
 
     expect(isDistractionWhitelisted('systemd')).toBe(true);
 });
+
+test('Should not whitelist a blocked process outside of a time range', async () => {
+    const currentDate = new Date('2021-01-01T12:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+    await blockDistraction({ name: 'example.com' });
+
+    await whitelistDistraction({ name: 'example.com', time: '0h-1h' });
+
+    expect(isDistractionBlocked('example.com')).toBe(true);
+});
