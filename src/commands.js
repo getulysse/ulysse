@@ -1,11 +1,10 @@
-import { isAbsolute } from 'path';
 import { config } from './config';
 import { getParam } from './utils';
 import { version } from '../package.json';
 import { HELP_MESSAGE } from './constants';
 import { whitelistDistraction } from './whitelist';
 import { isValidPassword, enableShieldMode, disableShieldMode } from './shield';
-import { isValidDistraction, isValidDomain, blockDistraction, unblockDistraction } from './block';
+import { isValidDistraction, blockDistraction, unblockDistraction } from './block';
 import { daemon } from './daemon';
 
 export const helpCmd = () => {
@@ -57,7 +56,7 @@ export const whitelistCmd = (name) => {
     const password = getParam('--password') || getParam('-p');
     const distraction = { name, time };
 
-    if (!isValidDomain(name.replace('*.', '')) && !isAbsolute(name)) {
+    if (!isValidDistraction(distraction)) {
         console.log('You must provide a valid distraction.');
         return;
     }
