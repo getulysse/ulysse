@@ -1,8 +1,17 @@
 import { config, readConfig, editConfig } from '../src/config';
 import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
-import { blockDistraction, isDistractionBlocked } from '../src/block';
+import { blockDistraction, isDistractionBlocked, getRunningBlockedApps } from '../src/block';
 import { isDistractionWhitelisted, whitelistDistraction } from '../src/whitelist';
+
+jest.mock('../src/utils', () => ({
+    ...jest.requireActual('../src/utils'),
+    getRunningApps: jest.fn().mockImplementation(() => [
+        { name: 'calibre-paralle', pid: 1234, cmd: '/bin/calibre-parallel', bin: 'calibre-parallel' },
+        { name: 'chromium', pid: 1234, cmd: '/bin/chromium', bin: 'chromium' },
+        { name: 'node', pid: 1234, cmd: '/bin/node' },
+    ]),
+}));
 
 beforeEach(async () => {
     await disableShieldMode('ulysse');
@@ -47,4 +56,13 @@ test('Should not whitelist a blocked process outside of a time range', async () 
     await whitelistDistraction({ name: 'example.com', time: '0h-1h' });
 
     expect(isDistractionBlocked('example.com')).toBe(true);
+});
+
+test('Should not block a process with a cropped name', async () => {
+    await whitelistDistraction({ name: 'calibre-parallel' });
+
+    await blockDistraction({ name: '*' });
+    const runningBlockedApps = JSON.stringify(getRunningBlockedApps());
+
+    expect(runningBlockedApps).not.toContain('calibre-parallel');
 });
