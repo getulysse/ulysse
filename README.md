@@ -8,6 +8,19 @@ Ulysse is a simple CLI tool for blocking your distracting apps and websites.
 
 Prevent distractions by blocking your most distracting apps and websites, even if you are the administrator of your computer.
 
+> [!WARNING]
+> The shield mode block root access to your computer and can block you from disabling Ulysse.
+>
+> Make sure to remember your password.
+>
+> If you are blocked, you can still disable Ulysse by running the following commands from a live USB:
+>
+> ```bash
+> rm /etc/sudoers.d/ulysse
+> usermod -s /bin/bash root # Or edit /etc/passwd file
+> echo 'nameserver 9.9.9.9' | sudo tee /etc/resolv.conf
+> ```
+
 ## 📋 Requirements
 
 - Linux
