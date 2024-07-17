@@ -14,8 +14,8 @@ export const updateResolvConf = (dnsServer = DNS_SERVER) => {
     execSync(`chattr +i ${RESOLV_CONF_PATH}`);
 };
 
-export const handleAppBlocking = () => {
-    const runningBlockedApps = getRunningBlockedApps();
+export const handleAppBlocking = async () => {
+    const runningBlockedApps = await getRunningBlockedApps();
 
     for (const app of runningBlockedApps) {
         try {
@@ -29,8 +29,10 @@ export const handleAppBlocking = () => {
 };
 
 export const handleTimeout = async () => {
-    const blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
-    const whitelist = config.whitelist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
+    const removeTimeouts = (list) => list.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
+
+    const blocklist = removeTimeouts(config.blocklist);
+    const whitelist = removeTimeouts(config.whitelist);
 
     if (blocklist.length !== config.blocklist.length || whitelist.length !== config.whitelist.length) {
         await editConfig(config);
@@ -48,8 +50,8 @@ export const daemon = () => {
         process.exit(1);
     }
 
-    setInterval(() => {
-        handleAppBlocking();
+    setInterval(async () => {
+        await handleAppBlocking();
     }, 1000);
 
     setInterval(() => {

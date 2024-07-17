@@ -12,7 +12,11 @@ export default {
     plugins: [
         json(),
         terser(),
-        commonjs(),
+        commonjs({
+            dynamicRequireTargets: [
+                'node_modules/x11/lib/ext/big-requests.js',
+            ],
+        }),
         nodeResolve(),
         babel({ babelHelpers: 'bundled' }),
     ],

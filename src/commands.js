@@ -1,4 +1,4 @@
-import { config } from './config';
+import { editConfig, config } from './config';
 import { getParam } from './utils';
 import { version } from '../package.json';
 import { HELP_MESSAGE } from './constants';
@@ -6,6 +6,8 @@ import { whitelistDistraction } from './whitelist';
 import { isValidPassword, enableShieldMode, disableShieldMode } from './shield';
 import { isValidDistraction, blockDistraction, unblockDistraction } from './block';
 import { daemon } from './daemon';
+
+export { default as interactiveCmd } from './interactive';
 
 export const helpCmd = () => {
     console.log(HELP_MESSAGE);
@@ -22,6 +24,7 @@ export const daemonCmd = () => {
 export const blockCmd = (name) => {
     const time = getParam('--time') || getParam('-t');
     const force = getParam('--force') || getParam('-f');
+    const profile = getParam('--profile') || getParam('-p');
     const distraction = { name, time };
 
     if (!force && !isValidDistraction(distraction)) {
@@ -29,7 +32,7 @@ export const blockCmd = (name) => {
         return;
     }
 
-    blockDistraction(distraction);
+    blockDistraction(distraction, profile);
     console.log(`Blocking ${name}`);
 };
 
@@ -115,4 +118,17 @@ export const shieldCmd = (value = 'on') => {
 
         console.log('You must provide a valid password to disable the shield mode.');
     }
+};
+
+export const profileCmd = async (profile) => {
+    const time = getParam('--time') || getParam('-t');
+
+    if (!profile) {
+        console.log('You must provide a valid profile name.');
+        return;
+    }
+
+    config.profiles = profile.split(',').map((name) => ({ name, time }));
+
+    await editConfig(config);
 };

@@ -1,8 +1,7 @@
 import fs from 'fs';
-import { config, editConfig, readConfig } from '../src/config';
+import { config, resetConfig, readConfig } from '../src/config';
 import { getRunningApps } from '../src/utils';
 import { blockDistraction } from '../src/block';
-import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
 import { handleAppBlocking, handleTimeout, updateResolvConf } from '../src/daemon';
 
@@ -18,15 +17,14 @@ jest.mock('child_process', () => ({
 
 beforeEach(async () => {
     await disableShieldMode('ulysse');
-    await editConfig(DEFAULT_CONFIG);
-    Object.assign(config, DEFAULT_CONFIG);
+    await resetConfig();
     jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 
 test('Should block a running app', async () => {
-    blockDistraction({ name: 'node' });
+    await blockDistraction({ name: 'node' });
 
-    handleAppBlocking();
+    await handleAppBlocking();
 
     expect(console.log).toHaveBeenCalledWith('Blocking node');
 });

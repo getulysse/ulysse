@@ -1,5 +1,4 @@
 import fs from 'fs';
-import { isAbsolute } from 'path';
 import { execSync } from 'child_process';
 import { isValidApp } from './block';
 import { config, editConfig } from './config';
@@ -29,7 +28,7 @@ export const blockRoot = () => {
     fs.writeFileSync('/etc/sudoers.d/ulysse', `${process.env.SUDO_USER} ALL=(ALL) !ALL`, 'utf8');
 
     for (const w of config.whitelist) {
-        if (isValidApp(w.name) && isAbsolute(w.name)) {
+        if (isValidApp(w.name)) {
             fs.appendFileSync('/etc/sudoers.d/ulysse', `\n${process.env.SUDO_USER} ALL=(ALL) ${w.name}`, 'utf8');
         }
     }

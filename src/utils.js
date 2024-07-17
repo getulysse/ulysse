@@ -129,3 +129,17 @@ export const isDaemonRunning = () => {
 export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
 
 export const getRootDomain = (domain) => domain.split('.').slice(-2).join('.');
+
+export const getAllApps = () => {
+    const paths = process.env.PATH.split(':');
+
+    const apps = paths.reduce((acc, path) => {
+        try {
+            return [...acc, ...fs.readdirSync(path)];
+        } catch {
+            return acc;
+        }
+    }, []);
+
+    return apps;
+};

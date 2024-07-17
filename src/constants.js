@@ -1,4 +1,10 @@
-export const DEFAULT_CONFIG = process.env.DEFAULT_CONFIG || { shield: false, blocklist: [], whitelist: [], date: new Date('1970').toISOString() };
+export const DEFAULT_CONFIG = process.env.DEFAULT_CONFIG || {
+    shield: false,
+    profiles: [],
+    blocklist: [],
+    whitelist: [],
+    date: new Date('1970').toISOString(),
+};
 
 export const RESOLV_CONF_PATH = process.env.RESOLV_CONF_PATH || '/etc/resolv.conf';
 
@@ -13,64 +19,6 @@ export const DNS_SERVER = process.env.DNS_SERVER || '9.9.9.9';
 export const DNS_PORT = process.env.DNS_PORT || 53;
 
 export const DOMAIN_REGEX = /^([\w-]+\.)+[\w-]+$/;
-
-export const SYSTEM_WHITELIST = [
-    new URL(GUN_SERVER).hostname,
-    'agetty',
-    'at-spi2-registr',
-    'at-spi-bus-laun',
-    'bash',
-    'bluetoothd',
-    'chattr',
-    'containerd',
-    'containerd-shim',
-    'crond',
-    'dbus-broker',
-    'dbus-broker-lau',
-    'dconf-service',
-    'dockerd',
-    'docker-proxy',
-    'dunst',
-    'gnome-keyring-d',
-    'gpg-agent',
-    'greetd',
-    'grep',
-    'gvfsd',
-    'gvfsd-fuse',
-    'journalctl',
-    'less',
-    'lightdm',
-    'login',
-    'NetworkManager',
-    'nm-dispatcher',
-    'pipewire',
-    'pipewire-pulse',
-    'polkitd',
-    'pulseaudio',
-    'rtkit-daemon',
-    'scdaemon',
-    '(sd-pam)',
-    'sh',
-    'sort',
-    'sshd',
-    'startx',
-    'sudo',
-    'systemd',
-    'systemd-journal',
-    'systemd-logind',
-    'systemd-timesyn',
-    'systemd-udevd',
-    'systemd-userdbd',
-    'systemd-userwor',
-    '(udev-worker)',
-    'ulysse',
-    'wireplumber',
-    'wpa_supplicant',
-    'xcompmgr',
-    'xinit',
-    'Xorg',
-    'zsh',
-];
 
 export const HELP_MESSAGE = `Usage: ulysse [OPTIONS]
 

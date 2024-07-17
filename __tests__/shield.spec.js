@@ -1,13 +1,10 @@
-import { config, readConfig, editConfig } from '../src/config';
-import { DEFAULT_CONFIG } from '../src/constants';
+import { readConfig, resetConfig } from '../src/config';
 import { whitelistDistraction } from '../src/whitelist';
 import { enableShieldMode, disableShieldMode } from '../src/shield';
 import { blockDistraction, unblockDistraction } from '../src/block';
 
 beforeEach(async () => {
-    await disableShieldMode('ulysse');
-    await editConfig(DEFAULT_CONFIG);
-    Object.assign(config, DEFAULT_CONFIG);
+    await resetConfig();
     jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 
@@ -42,7 +39,8 @@ test('Should not unblock a distraction if shield mode is enabled', async () => {
 
     await unblockDistraction({ name: 'example.com' });
 
-    expect(readConfig().blocklist).toContainEqual({ name: 'example.com' });
+    const { blocklist } = readConfig();
+    expect(blocklist).toContainEqual({ name: 'example.com', profile: 'default' });
 });
 
 test('Should not whitelist a distraction if shield mode is enabled', async () => {
@@ -50,5 +48,6 @@ test('Should not whitelist a distraction if shield mode is enabled', async () =>
 
     await whitelistDistraction({ name: 'example.com' });
 
-    expect(readConfig().whitelist).not.toContainEqual({ name: 'example.com' });
+    const { whitelist } = readConfig();
+    expect(whitelist).not.toContainEqual({ name: 'example.com' });
 });
