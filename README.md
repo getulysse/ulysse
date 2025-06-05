@@ -43,7 +43,7 @@ npm i -g ulysse
 ```txt
 Usage: ulysse [options] [command]
 
-A simple cli tool to block your distracting apps and websites.
+A simple CLI tool for blocking your distracting apps and websites.
 
 Options:
   -v, --version   output the version number

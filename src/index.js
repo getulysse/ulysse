@@ -4,14 +4,15 @@ import { program } from 'commander';
 import { config } from './config';
 import { daemon } from './daemon';
 import { version } from '../package.json';
-import { isDaemonRunning } from './utils';
+import { DEFAULT_TIMEOUT } from './constants';
+import { isDaemonRunning, isValidTimeout } from './utils';
 import { clearBlocklist, blockDistraction } from './block';
 import { clearWhitelist, whitelistDistraction } from './whitelist';
 import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
 
 program
     .name('ulysse')
-    .description('A simple cli tool to block your distracting apps and websites.')
+    .description('A simple CLI tool for blocking your distracting apps and websites.')
     .version(version, '-v, --version')
     .helpOption('-h, --help', 'Show this help message and exit');
 
@@ -95,11 +96,6 @@ whitelistCmd
     .command('clear')
     .description('Clear the whitelist')
     .action(async () => {
-        if (config.shield.enable) {
-            console.log('You must disable the shield mode first.');
-            return;
-        }
-
         await clearWhitelist();
         console.log('Whitelist cleared.');
     });
@@ -111,14 +107,21 @@ const shieldCmd = program
 shieldCmd
     .command('enable')
     .description('Enable the shield mode')
-    .action(async () => {
+    .option('-p, --password <password>', 'Password to disable shield mode')
+    .option('-t, --timeout <timeout>', 'Timeout for shield mode (e.g., 30m, 1h, 2d)')
+    .action(async ({ password = null, timeout = DEFAULT_TIMEOUT }) => {
         if (config.shield.enable) {
             console.log('Shield mode is already enabled.');
             return;
         }
 
-        await enableShieldMode();
-        console.log('Shield mode enabled.');
+        if (!isValidTimeout(timeout)) {
+            console.error('Invalid timeout format. Use "30m", "1h", "2d", etc.');
+            return;
+        }
+
+        await enableShieldMode(password, timeout);
+        console.log(`Shield mode enabled for ${timeout}.`);
     });
 
 shieldCmd

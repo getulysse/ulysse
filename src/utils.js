@@ -74,6 +74,15 @@ export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000
     }, timestamp);
 };
 
+export const isValidTimeout = (timeout) => {
+    if (!timeout) return false;
+
+    const durationPattern = /^(\d+d)?(\d+h)?(\d+m)?$/;
+    const intervalPattern = /^\d+h-\d+h$/;
+
+    return durationPattern.test(timeout) || intervalPattern.test(timeout);
+};
+
 export const getTimeType = (time) => {
     const durationPattern = /^(\d+d)?(\d+h)?(\d+m)?$/;
     const intervalPattern = /^\d+h-\d+h$/;

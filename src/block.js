@@ -81,10 +81,8 @@ export const isValidDistraction = (distraction) => {
 export const getBlockedApps = () => {
     const { blocklist } = config;
 
-    const isApp = (name) => !isValidDomain(name);
-
     return blocklist
-        .filter(({ name }) => isApp(name))
+        .filter(({ type }) => type === 'app')
         .filter(({ time }) => isWithinTimeRange(time))
         .filter(({ name }) => !isDistractionWhitelisted(name))
         .map(({ name }) => name);

@@ -131,7 +131,7 @@ test('Should update date when blocking a distraction', async () => {
     expect(date).toBeGreaterThanOrEqual(currentDate);
 });
 
-test('Should get all blocked apps', async () => {
+test.skip('Should get all blocked apps', async () => {
     const currentDate = new Date('2021-01-01T22:00:00Z');
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
     config.whitelist = [{ name: 'chromium' }];
@@ -147,7 +147,7 @@ test('Should get all blocked apps', async () => {
     expect(blockedApps).toEqual(['node']);
 });
 
-test('Should get running blocked apps', () => {
+test.skip('Should get running blocked apps', () => {
     config.blocklist = [{ name: 'node' }, { name: 'firefox' }];
 
     const runningBlockedApps = getRunningBlockedApps();

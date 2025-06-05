@@ -1,7 +1,7 @@
 {
   "name": "ulysse",
   "author": "johackim",
-  "description": "Simple CLI tool for blocking your distracting apps and websites",
+  "description": "A simple CLI tool for blocking your distracting apps and websites",
   "homepage": "https://github.com/getulysse/ulysse",
   "license": "GPL-3.0",
   "main": "dist/index.js",

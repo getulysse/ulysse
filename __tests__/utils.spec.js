@@ -1,4 +1,4 @@
-import { getTimeType, createTimeout, isWithinTimeRange } from '../src/utils';
+import { getTimeType, createTimeout, isWithinTimeRange, isValidTimeout } from '../src/utils';
 
 test('Should get duration time type', () => {
     expect(getTimeType('1d')).toBe('duration');
@@ -23,4 +23,13 @@ test('Should check if a time is within an interval', async () => {
     expect(isWithinTimeRange('0h-23h')).toBe(true);
     expect(isWithinTimeRange('0h-19h')).toBe(true);
     expect(isWithinTimeRange('20h-23h')).toBe(false);
+});
+
+test('Should check if a timeout is valid', () => {
+    expect(isValidTimeout('1d')).toBe(true);
+    expect(isValidTimeout('2h')).toBe(true);
+    expect(isValidTimeout('30m')).toBe(true);
+    expect(isValidTimeout('1h59m')).toBe(true);
+    expect(isValidTimeout('12')).toBe(false);
+    expect(isValidTimeout('abc')).toBe(false);
 });

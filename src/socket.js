@@ -3,7 +3,7 @@ import fs from 'fs';
 import net from 'net';
 import { config } from './config';
 import { SOCKET_PATH, CONFIG_PATH } from './constants';
-import { createTimeout, removeDuplicates } from './utils';
+import { removeDuplicates } from './utils';
 import { blockRoot, unblockRoot, isValidPassword } from './shield';
 
 const removeTimeouts = (list) => list.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
@@ -24,11 +24,17 @@ const editConfig = (newConfig) => {
         config.shield.enable = false;
     }
 
-    if (shield.enable && passwordHash) {
+    if (shield.enable) {
         blockRoot();
-        config.shield.enable = true;
-        config.shield.timeout = createTimeout('3m');
-        config.passwordHash = passwordHash;
+        if (shield.timeout) {
+            config.shield.enable = true;
+            config.shield.timeout = shield.timeout;
+        }
+
+        if (passwordHash) {
+            config.shield.enable = true;
+            config.passwordHash = passwordHash;
+        }
     }
 
     delete config.password;

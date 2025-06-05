@@ -6,6 +6,8 @@ export const CONFIG_PATH = process.env.CONFIG_PATH || '/etc/ulysse/config.json';
 
 export const SOCKET_PATH = process.env.SOCKET_PATH || '/var/run/ulysse.sock';
 
+export const DEFAULT_TIMEOUT = process.env.DEFAULT_TIMEOUT || '30m';
+
 export const DNS_SERVER = process.env.DNS_SERVER || '9.9.9.9';
 
 export const DNS_PORT = process.env.DNS_PORT || 53;
