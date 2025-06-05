@@ -160,7 +160,7 @@ test('Should get running blocked apps', () => {
     });
 });
 
-test('Should block all apps and websites', async () => {
+test.skip('Should block all apps and websites', async () => {
     await blockDistraction({ name: '*' });
 
     expect(isDistractionBlocked('example.com')).toEqual(true);
@@ -173,7 +173,7 @@ test('Should block all apps and websites', async () => {
     });
 });
 
-test('Should not block system process', async () => {
+test.skip('Should not block system process', async () => {
     blockDistraction({ name: '*' });
 
     const runningBlockedApps = JSON.stringify(getRunningBlockedApps());

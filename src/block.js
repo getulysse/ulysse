@@ -18,9 +18,17 @@ export const blockDistraction = async (distraction) => {
 };
 
 export const unblockDistraction = async (distraction) => {
-    if (config.shield) return;
+    if (config.shield.enable) return;
 
     config.blocklist = config.blocklist.filter(({ name, time }) => JSON.stringify({ name, time }) !== JSON.stringify(distraction));
+
+    await editConfig(config);
+};
+
+export const clearBlocklist = async () => {
+    if (config.shield.enable) return;
+
+    config.blocklist = [];
 
     await editConfig(config);
 };
@@ -38,7 +46,7 @@ export const isDistractionBlocked = (distraction) => {
     const rootDomain = getRootDomain(distraction);
     const { blocklist } = config;
 
-    if (blocklist.some(({ name, time }) => name === '*' && isWithinTimeRange(time))) return true;
+    // if (blocklist.some(({ name, time }) => name === '*' && isWithinTimeRange(time))) return true;
 
     return blocklist.some(({ name, time }) => (name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
 };

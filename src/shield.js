@@ -13,13 +13,14 @@ export const isValidPassword = (password) => {
 
 export const enableShieldMode = async (password = generatePassword()) => {
     const passwordHash = sha256(password);
+
     console.log(`Your password is: ${password}`);
 
-    await editConfig({ ...config, password, passwordHash, shield: true });
+    await editConfig({ ...config, password, passwordHash, shield: { enable: true } });
 };
 
 export const disableShieldMode = async (password) => {
-    await editConfig({ ...config, password, shield: false });
+    await editConfig({ ...config, password, shield: { enable: false } });
 };
 
 export const blockRoot = () => {

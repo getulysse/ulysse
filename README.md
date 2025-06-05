@@ -18,11 +18,12 @@ Prevent distractions by blocking your most distracting apps and websites, even i
 > ```bash
 > rm /etc/sudoers.d/ulysse
 > usermod -s /bin/bash root # Or edit /etc/passwd file
-> echo 'nameserver 9.9.9.9' | sudo tee /etc/resolv.conf
+> echo 'nameserver 9.9.9.9' | tee /etc/resolv.conf
 > ```
 
 ## 📋 Requirements
 
+- X11
 - Linux
 - Node.js >= 14.0.0
 
@@ -40,38 +41,27 @@ npm i -g ulysse
 ## 📖 Usage
 
 ```txt
-Usage: ulysse [OPTIONS]
+Usage: ulysse [options] [command]
 
-  Ulysse: A simple and powerful tool to block your distracting apps and websites.
+A simple cli tool to block your distracting apps and websites.
 
 Options:
-  -b, --block TARGET [-t, --time VALUE]
-                           Block a specific website or application. Optionally, add a time-based setting.
-                           The VALUE format can include usage limits, specific time intervals,
-                           or a quick block duration.
-                           Examples: 
-                             'ulysse -b example.com' (block indefinitely)
-                             'ulysse -b example.com -t 10m' (block for a short duration)
-                             'ulysse -b MyAppName -t 10h-18h' (block during specific hours)
+  -v, --version   output the version number
+  -h, --help      Show this help message and exit
 
-  -u, --unblock TARGET     Unblock a specific website or application.
-                           Example: 'ulysse -u example.com' or 'ulysse -u MyAppName'.
+Commands:
+  daemon          Start the Ulysse daemon
+  blocklist       Manage the blocklist
+  whitelist       Manage the whitelist
+  shield          Enable or disable the shield mode
+  help [command]  display help for command
 
-  -w, --whitelist TARGET   Whitelist a specific website.
-                           Example: 'ulysse -w example.com'.
-
-  -s, --shield [on|off] [-p, --password VALUE]
-                           Enable or disable shield mode to prevent jailbreak.
-                           By default, the shield mode is on. Use 'off' along with a password to disable it.
-                           The password is required to disable the shield mode.
-                           Example: 'ulysse -s on' to enable or 'ulysse -s off -p myp@ssw0rd' to disable.
-
-  -d, --daemon             Run Ulysse as a daemon.
-                           Example: 'ulysse -d' or 'ulysse --daemon'.
-
-  -v, --version            Show the version and exit.
-
-  -h, --help               Show this message and exit.
+Examples:
+  ulysse daemon start
+  ulysse blocklist add --app firefox
+  ulysse blocklist add --website youtube.com
+  ulysse whitelist add --website wikipedia.org
+  ulysse shield enable
 ```
 
 ## 🎁 Support me

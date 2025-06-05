@@ -17,7 +17,7 @@ test('Should enable shield mode', async () => {
     const { password, passwordHash, shield } = readConfig();
     expect(password).toBeUndefined();
     expect(passwordHash).toBe('d97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b');
-    expect(shield).toBe(true);
+    expect(shield.enable).toBe(true);
 });
 
 test('Should disable shield mode', async () => {
@@ -25,7 +25,7 @@ test('Should disable shield mode', async () => {
 
     await disableShieldMode('ulysse');
 
-    expect(readConfig().shield).toBe(false);
+    expect(readConfig().shield.enable).toBe(false);
     expect(readConfig().passwordHash).toBeUndefined();
 });
 
@@ -33,7 +33,7 @@ test('Should not disable shield mode if bad password', async () => {
     await enableShieldMode('ulysse');
     await disableShieldMode('badpassword');
 
-    expect(readConfig().shield).toBe(true);
+    expect(readConfig().shield.enable).toBe(true);
 });
 
 test('Should not unblock a distraction if shield mode is enabled', async () => {

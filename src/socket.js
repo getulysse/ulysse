@@ -1,30 +1,33 @@
 import 'dotenv/config';
 import fs from 'fs';
 import net from 'net';
-import Gun from 'gun';
 import { config } from './config';
-import { removeDuplicates } from './utils';
-import { SOCKET_PATH, CONFIG_PATH, GUN_SERVER } from './constants';
+import { SOCKET_PATH, CONFIG_PATH } from './constants';
+import { createTimeout, removeDuplicates } from './utils';
 import { blockRoot, unblockRoot, isValidPassword } from './shield';
 
 const removeTimeouts = (list) => list.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
 
+// eslint-disable-next-line complexity
 const editConfig = (newConfig) => {
     const { blocklist = [], whitelist = [], date, shield, password, passwordHash } = newConfig;
 
     config.date = date;
-    config.whitelist = removeTimeouts(removeDuplicates(config.shield ? config.whitelist : whitelist));
-    config.blocklist = removeTimeouts(removeDuplicates(config.shield ? [...config.blocklist, ...blocklist] : blocklist));
+    config.whitelist = removeTimeouts(removeDuplicates(config.shield.enable ? config.whitelist : whitelist));
+    config.blocklist = removeTimeouts(removeDuplicates(config.shield.enable ? [...config.blocklist, ...blocklist] : blocklist));
 
-    if (isValidPassword(password)) {
+    if (isValidPassword(password) || config.shield.timeout <= Math.floor(Date.now() / 1000)) {
         unblockRoot();
-        config.shield = false;
+        delete config.password;
         delete config.passwordHash;
+        delete config.shield.timeout;
+        config.shield.enable = false;
     }
 
-    if (shield && passwordHash) {
+    if (shield.enable && passwordHash) {
         blockRoot();
-        config.shield = true;
+        config.shield.enable = true;
+        config.shield.timeout = createTimeout('3m');
         config.passwordHash = passwordHash;
     }
 
@@ -45,11 +48,6 @@ const server = net.createServer((connection) => {
         const newConfig = { ...data, date: new Date().toISOString() };
 
         editConfig(newConfig);
-
-        if (process.env.NODE_ENV !== 'test' && data.gun !== false) {
-            const gun = Gun({ peers: [GUN_SERVER], axe: false });
-            gun.get('db').get('config').put(JSON.stringify(newConfig));
-        }
     });
 });
 

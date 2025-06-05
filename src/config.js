@@ -1,7 +1,7 @@
 import fs from 'fs';
 import net from 'net';
 import { dirname } from 'path';
-import { isSudo, tryCatch } from './utils';
+import { tryCatch } from './utils';
 import { CONFIG_PATH, DEFAULT_CONFIG, SOCKET_PATH } from './constants';
 
 export const sendDataToSocket = (data) => new Promise((resolve, reject) => {

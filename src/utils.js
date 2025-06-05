@@ -63,16 +63,6 @@ export const displayPrompt = async (message) => {
     });
 };
 
-export const getParam = (key) => {
-    const index = process.argv.indexOf(key);
-
-    if (index === -1) return undefined;
-
-    if (['--force', '-f'].includes(key) && index !== -1) return true;
-
-    return process.argv[index + 1];
-};
-
 export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000)) => {
     const units = { m: 60, h: 3600, d: 86400 };
     const match = duration.match(/(\d+)([mhd])/g);
@@ -121,9 +111,9 @@ export const getRunningApps = tryCatch(() => {
 export const isDaemonRunning = () => {
     const apps = getRunningApps();
 
-    const cmds = ['ulysse -d', 'ulysse --daemon'];
+    const cmd = 'ulysse daemon start';
 
-    return cmds.some((cmd) => apps.some((app) => app.cmd.includes(cmd)));
+    return apps.some((app) => app.cmd.includes(cmd));
 };
 
 export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);

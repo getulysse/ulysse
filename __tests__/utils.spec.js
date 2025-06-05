@@ -1,4 +1,4 @@
-import { getTimeType, createTimeout, isWithinTimeRange, getParam } from '../src/utils';
+import { getTimeType, createTimeout, isWithinTimeRange } from '../src/utils';
 
 test('Should get duration time type', () => {
     expect(getTimeType('1d')).toBe('duration');
@@ -23,16 +23,4 @@ test('Should check if a time is within an interval', async () => {
     expect(isWithinTimeRange('0h-23h')).toBe(true);
     expect(isWithinTimeRange('0h-19h')).toBe(true);
     expect(isWithinTimeRange('20h-23h')).toBe(false);
-});
-
-test('Should get a parameter from the command line', async () => {
-    process.argv = ['ulysse', '--time', '30m', '-w', 'example.com'];
-    expect(getParam('--time')).toBe('30m');
-    expect(getParam('-w')).toBe('example.com');
-});
-
-test('Should get a -f parameter without value', async () => {
-    process.argv = ['ulysse', '-f', '-w', 'example.com'];
-    expect(getParam('-w')).toBe('example.com');
-    expect(getParam('-f')).toBe(true);
 });

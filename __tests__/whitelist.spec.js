@@ -42,12 +42,6 @@ test('Should not block a domain if it is in the whitelist with a wildcard', asyn
     expect(isDistractionBlocked('www.example.com')).toBe(false);
 });
 
-test('Should not block a process from the system whitelist', async () => {
-    await blockDistraction({ name: '*' });
-
-    expect(isDistractionWhitelisted('systemd')).toBe(true);
-});
-
 test('Should not whitelist a blocked process outside of a time range', async () => {
     const currentDate = new Date('2021-01-01T12:00:00Z');
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);

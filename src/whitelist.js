@@ -1,9 +1,16 @@
 import { config, editConfig } from './config';
-import { SYSTEM_WHITELIST } from './constants';
 import { getRootDomain, removeDuplicates, getTimeType, createTimeout, isWithinTimeRange } from './utils';
 
+export const clearWhitelist = async () => {
+    if (config.shield.enable) return;
+
+    config.whitelist = [];
+
+    await editConfig(config);
+};
+
 export const whitelistDistraction = async (distraction) => {
-    if (config.shield) return;
+    if (config.shield.enable) return;
 
     config.whitelist = removeDuplicates([...config.whitelist, distraction]);
     config.whitelist = config.whitelist.map((d) => {
@@ -18,7 +25,6 @@ export const whitelistDistraction = async (distraction) => {
 };
 
 export const isDistractionWhitelisted = (distraction) => {
-    if (SYSTEM_WHITELIST.some((d) => d === distraction && isWithinTimeRange(d.time))) return true;
     if (config.whitelist.some((d) => d.name.slice(0, 15) === distraction && isWithinTimeRange(d.time))) return true;
     if (config.whitelist.some((d) => d.name === distraction && isWithinTimeRange(d.time))) return true;
     if (config.whitelist.some((d) => d.name === '*' && isWithinTimeRange(d.time))) return true;

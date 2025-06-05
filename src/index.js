@@ -1,34 +1,166 @@
 #!/usr/bin/env node
 
-import * as cmd from './commands';
-import { getParam, getAlias, isDaemonRunning } from './utils';
+import { program } from 'commander';
+import { config } from './config';
+import { daemon } from './daemon';
+import { version } from '../package.json';
+import { isDaemonRunning } from './utils';
+import { clearBlocklist, blockDistraction } from './block';
+import { clearWhitelist, whitelistDistraction } from './whitelist';
+import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
 
-const commands = {
-    '--help': cmd.helpCmd,
-    '--version': cmd.versionCmd,
-    '--daemon': cmd.daemonCmd,
-    '--block': cmd.blockCmd,
-    '--unblock': cmd.unblockCmd,
-    '--shield': cmd.shieldCmd,
-    '--whitelist': cmd.whitelistCmd,
-};
+program
+    .name('ulysse')
+    .description('A simple cli tool to block your distracting apps and websites.')
+    .version(version, '-v, --version')
+    .helpOption('-h, --help', 'Show this help message and exit');
 
-const processCommand = () => {
-    const command = Object.keys(commands).find((c) => process.argv.includes(c) || process.argv.includes(getAlias(c)));
-    const alias = getAlias(command);
-    const value = getParam(command) || getParam(alias);
+const daemonCmd = program
+    .command('daemon')
+    .description('Start the Ulysse daemon');
 
-    if (!['--help', '--version', '--daemon', undefined].includes(command) && !isDaemonRunning()) {
-        console.log('You must start the daemon first.');
-        return;
+daemonCmd
+    .command('start')
+    .description('Start the Ulysse daemon')
+    .action(async () => {
+        await daemon();
+        console.log('Ulysse daemon started.');
+    });
+
+const blocklistCmd = program
+    .command('blocklist')
+    .description('Manage the blocklist');
+
+blocklistCmd
+    .command('add')
+    .description('Add an app or website to the blocklist')
+    .argument('<name>', 'Name of the app or website to block')
+    .option('-w, --website', 'Block a website')
+    .option('-a, --app', 'Block an app')
+    .action(async (name, { website, app }) => {
+        if (!website && !app) {
+            console.log('You must specify whether it is a website or an app.');
+            return;
+        }
+
+        const type = app ? 'app' : 'website';
+
+        await blockDistraction({ name, type });
+
+        console.log(`Blocking ${type} ${name}`);
+    });
+
+blocklistCmd
+    .command('clear')
+    .description('Clear the blocklist')
+    .action(async () => {
+        if (config.shield.enable) {
+            console.log('You must disable the shield mode first.');
+            return;
+        }
+
+        await clearBlocklist();
+        console.log('Blocklist cleared.');
+    });
+
+const whitelistCmd = program
+    .command('whitelist')
+    .description('Manage the whitelist');
+
+whitelistCmd
+    .command('add')
+    .description('Add an app or website to the whitelist')
+    .argument('<name>', 'Name of the app or website to whitelist')
+    .option('-w, --website', 'Whitelist a website')
+    .option('-a, --app', 'Whitelist an app')
+    .action(async (name, { website, app }) => {
+        if (!website && !app) {
+            console.log('You must specify whether it is a website or an app.');
+            return;
+        }
+
+        if (config.shield.enable) {
+            console.log('You must disable the shield mode first.');
+            return;
+        }
+
+        const type = app ? 'app' : 'website';
+
+        await whitelistDistraction({ name, type });
+
+        console.log(`Whitelisting ${type} ${name}`);
+    });
+
+whitelistCmd
+    .command('clear')
+    .description('Clear the whitelist')
+    .action(async () => {
+        if (config.shield.enable) {
+            console.log('You must disable the shield mode first.');
+            return;
+        }
+
+        await clearWhitelist();
+        console.log('Whitelist cleared.');
+    });
+
+const shieldCmd = program
+    .command('shield')
+    .description('Enable or disable the shield mode');
+
+shieldCmd
+    .command('enable')
+    .description('Enable the shield mode')
+    .action(async () => {
+        if (config.shield.enable) {
+            console.log('Shield mode is already enabled.');
+            return;
+        }
+
+        await enableShieldMode();
+        console.log('Shield mode enabled.');
+    });
+
+shieldCmd
+    .command('disable')
+    .description('Disable the shield mode')
+    .option('-p, --password <password>', 'Password to disable shield mode')
+    .action(async ({ password }) => {
+        if (!config.shield.enable) {
+            console.log('Shield mode is already disabled.');
+            return;
+        }
+
+        if (!isValidPassword(password)) {
+            console.log('Invalid password');
+            return;
+        }
+
+        await disableShieldMode(password);
+        console.log('Shield mode disabled.');
+    });
+
+program.addHelpText('after', `
+Examples:
+  ulysse daemon start
+  ulysse blocklist add --app firefox
+  ulysse blocklist add --website youtube.com
+  ulysse whitelist add --website wikipedia.org
+  ulysse shield enable`);
+
+program.commands.forEach((cmd) => {
+    if (cmd.name() !== 'daemon') {
+        cmd.hook('preAction', () => {
+            if (!isDaemonRunning()) {
+                console.error('You must start the daemon first with "ulysse daemon start".');
+                process.exit(1);
+            }
+        });
     }
+});
 
-    if (command) {
-        commands[command](value);
-        return;
-    }
+program.parse(process.argv);
 
-    cmd.helpCmd();
-};
-
-processCommand();
+if (!process.argv.slice(2).length) {
+    program.outputHelp();
+}
