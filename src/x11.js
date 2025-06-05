@@ -1,4 +1,4 @@
-import x11 from './x11-shim';
+import x11 from 'x11';
 
 const connectToX11 = () => new Promise((resolve, reject) => {
     const client = x11.createClient((err, display) => {
