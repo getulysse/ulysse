@@ -46,7 +46,7 @@ Usage: ulysse [options] [command]
 A simple CLI tool for blocking your distracting apps and websites.
 
 Options:
-  -v, --version   output the version number
+  -v, --version   Show the version and exit
   -h, --help      Show this help message and exit
 
 Commands:

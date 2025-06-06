@@ -46,8 +46,6 @@ export const isDistractionBlocked = (distraction) => {
     const rootDomain = getRootDomain(distraction);
     const { blocklist } = config;
 
-    // if (blocklist.some(({ name, time }) => name === '*' && isWithinTimeRange(time))) return true;
-
     return blocklist.some(({ name, time }) => (name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
 };
 

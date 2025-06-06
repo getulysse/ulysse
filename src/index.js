@@ -13,7 +13,7 @@ import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
 program
     .name('ulysse')
     .description('A simple CLI tool for blocking your distracting apps and websites.')
-    .version(version, '-v, --version')
+    .version(version, '-v, --version', 'Show the version and exit')
     .helpOption('-h, --help', 'Show this help message and exit');
 
 const daemonCmd = program
