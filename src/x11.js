@@ -72,7 +72,9 @@ export const listActiveWindows = async () => {
     } catch {
         return windows;
     } finally {
-        await display.client.terminate();
+        if (display?.client) {
+            await display.client.terminate();
+        }
     }
 
     return windows;
