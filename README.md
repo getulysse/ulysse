@@ -25,6 +25,7 @@ Prevent distractions by blocking your most distracting apps and websites, even i
 
 - X11
 - Linux
+- Systemd
 - Node.js >= 14.0.0
 
 ## ✨ Features
