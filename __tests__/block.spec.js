@@ -189,3 +189,22 @@ test('Should not block all websites outside of a time range', async () => {
 
     expect(isDistractionBlocked('example.com')).toEqual(false);
 });
+
+test('Should block a distraction with time interval parameter', async () => {
+    const currentDate = new Date('2021-01-01T15:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    await blockDistraction({ name: 'youtube.com', time: '8h-20h' });
+
+    expect(isDistractionBlocked('youtube.com')).toBe(true);
+    expect(config.blocklist).toEqual([{ name: 'youtube.com', time: '8h-20h' }]);
+});
+
+test('Should not block a distraction outside of time interval', async () => {
+    const currentDate = new Date('2021-01-01T22:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    await blockDistraction({ name: 'youtube.com', time: '8h-20h' });
+
+    expect(isDistractionBlocked('youtube.com')).toBe(false);
+});

@@ -38,7 +38,8 @@ blocklistCmd
     .argument('<name>', 'Name of the app or website to block')
     .option('-w, --website', 'Block a website')
     .option('-a, --app', 'Block an app')
-    .action(async (name, { website, app }) => {
+    .option('-t, --time <time>', 'Time interval for blocking (e.g., 8h-20h)')
+    .action(async (name, { website, app, time }) => {
         if (!website && !app) {
             console.log('You must specify whether it is a website or an app.');
             return;
@@ -46,9 +47,9 @@ blocklistCmd
 
         const type = app ? 'app' : 'website';
 
-        await blockDistraction({ name, type });
+        await blockDistraction({ name, type, time });
 
-        console.log(`Blocking ${type} ${name}`);
+        console.log(`Blocking ${type} ${name}${time ? ` within interval ${time}` : ''}`);
     });
 
 blocklistCmd
@@ -147,7 +148,7 @@ program.addHelpText('after', `
 Examples:
   ulysse daemon start
   ulysse blocklist add --app firefox
-  ulysse blocklist add --website youtube.com
+  ulysse blocklist add --website youtube.com -t 8h-20h
   ulysse whitelist add --website wikipedia.org
   ulysse shield enable`);
 
