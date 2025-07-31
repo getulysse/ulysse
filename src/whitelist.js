@@ -24,6 +24,14 @@ export const whitelistDistraction = async (distraction) => {
     await editConfig(config);
 };
 
+export const unwhitelistDistraction = async (distraction) => {
+    config.whitelist = config.whitelist.filter(
+        (d) => d.name !== distraction.name || d.type !== distraction.type,
+    );
+
+    await editConfig(config);
+};
+
 export const isDistractionWhitelisted = (distraction) => {
     if (config.whitelist.some((d) => d.name.slice(0, 15) === distraction && isWithinTimeRange(d.time))) return true;
     if (config.whitelist.some((d) => d.name === distraction && isWithinTimeRange(d.time))) return true;

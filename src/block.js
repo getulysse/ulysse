@@ -18,9 +18,12 @@ export const blockDistraction = async (distraction) => {
 };
 
 export const unblockDistraction = async (distraction) => {
-    if (config.shield.enable) return;
+    if (config.shield.enable) {
+        console.log('You must disable the shield mode first.');
+        return;
+    }
 
-    config.blocklist = config.blocklist.filter(({ name, time }) => JSON.stringify({ name, time }) !== JSON.stringify(distraction));
+    config.blocklist = config.blocklist.filter((d) => d.name !== distraction.name || d.type !== distraction.type);
 
     await editConfig(config);
 };

@@ -6,8 +6,8 @@ import { daemon } from './daemon';
 import { version } from '../package.json';
 import { DEFAULT_TIMEOUT } from './constants';
 import { isDaemonRunning, isValidTimeout } from './utils';
-import { clearBlocklist, blockDistraction, listBlocklist } from './block';
-import { clearWhitelist, whitelistDistraction, listWhitelist } from './whitelist';
+import { clearBlocklist, blockDistraction, listBlocklist, unblockDistraction } from './block';
+import { clearWhitelist, whitelistDistraction, listWhitelist, unwhitelistDistraction } from './whitelist';
 import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
 
 program
@@ -50,6 +50,25 @@ blocklistCmd
         await blockDistraction({ name, type, time });
 
         console.log(`Blocking ${type} ${name}${time ? ` within interval ${time}` : ''}`);
+    });
+
+blocklistCmd
+    .command('rm')
+    .description('Remove an app or website from the blocklist')
+    .argument('<name>', 'Name of the app or website to unblock')
+    .option('-w, --website', 'Unblock a website')
+    .option('-a, --app', 'Unblock an app')
+    .action(async (name, { website, app, time }) => {
+        if (!website && !app) {
+            console.log('You must specify whether it is a website or an app.');
+            return;
+        }
+
+        const type = app ? 'app' : 'website';
+
+        await unblockDistraction({ name, type });
+
+        console.log(`Unblocking ${type} ${name}`);
     });
 
 blocklistCmd
@@ -99,6 +118,25 @@ whitelistCmd
         await whitelistDistraction({ name, type });
 
         console.log(`Whitelisting ${type} ${name}`);
+    });
+
+whitelistCmd
+    .command('rm')
+    .description('Remove an app or website from the whitelist')
+    .argument('<name>', 'Name of the app or website to remove from whitelist')
+    .option('-w, --website', 'Remove a website from the whitelist')
+    .option('-a, --app', 'Remove an app from the whitelist')
+    .action(async (name, { website, app, time }) => {
+        if (!website && !app) {
+            console.log('You must specify whether it is a website or an app.');
+            return;
+        }
+
+        const type = app ? 'app' : 'website';
+
+        await unwhitelistDistraction({ name, type });
+
+        console.log(`Remove ${type} ${name} from whitelist`);
     });
 
 whitelistCmd
