@@ -6,8 +6,8 @@ import { daemon } from './daemon';
 import { version } from '../package.json';
 import { DEFAULT_TIMEOUT } from './constants';
 import { isDaemonRunning, isValidTimeout } from './utils';
-import { clearBlocklist, blockDistraction } from './block';
-import { clearWhitelist, whitelistDistraction } from './whitelist';
+import { clearBlocklist, blockDistraction, listBlocklist } from './block';
+import { clearWhitelist, whitelistDistraction, listWhitelist } from './whitelist';
 import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
 
 program
@@ -65,6 +65,14 @@ blocklistCmd
         console.log('Blocklist cleared.');
     });
 
+blocklistCmd
+    .command('list')
+    .alias('l')
+    .description('List all blocked items')
+    .action(() => {
+        listBlocklist();
+    });
+
 const whitelistCmd = program
     .command('whitelist')
     .description('Manage the whitelist');
@@ -99,6 +107,14 @@ whitelistCmd
     .action(async () => {
         await clearWhitelist();
         console.log('Whitelist cleared.');
+    });
+
+whitelistCmd
+    .command('list')
+    .alias('l')
+    .description('List all whitelisted items')
+    .action(() => {
+        listWhitelist();
     });
 
 const shieldCmd = program
@@ -148,8 +164,8 @@ program.addHelpText('after', `
 Examples:
   ulysse daemon start
   ulysse blocklist add --app firefox
-  ulysse blocklist add --website youtube.com -t 8h-20h
   ulysse whitelist add --website wikipedia.org
+  ulysse blocklist add --website youtube.com -t 8h-20h
   ulysse shield enable`);
 
 program.commands.forEach((cmd) => {

@@ -98,3 +98,20 @@ export const getRunningBlockedApps = () => {
 
     return runningApps.filter(isBlockedApp);
 };
+
+export const listBlocklist = () => {
+    const { blocklist } = config;
+
+    if (blocklist.length === 0) {
+        console.log('No blocked items found.');
+        return;
+    }
+
+    console.log('Blocked items:');
+
+    blocklist.forEach((item, index) => {
+        const timeInfo = item.time ? ` (time: ${item.time})` : '';
+        const typeInfo = item.type ? ` [${item.type}]` : '';
+        console.log(`  ${index + 1}. ${item.name}${typeInfo}${timeInfo}`);
+    });
+};

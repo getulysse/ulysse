@@ -32,3 +32,20 @@ export const isDistractionWhitelisted = (distraction) => {
 
     return false;
 };
+
+export const listWhitelist = () => {
+    const { whitelist } = config;
+
+    if (whitelist.length === 0) {
+        console.log('No whitelisted items found.');
+        return;
+    }
+
+    console.log('Whitelisted items:');
+
+    whitelist.forEach((item, index) => {
+        const timeInfo = item.time ? ` (time: ${item.time})` : '';
+        const typeInfo = item.type ? ` [${item.type}]` : '';
+        console.log(`  ${index + 1}. ${item.name}${typeInfo}${timeInfo}`);
+    });
+};
