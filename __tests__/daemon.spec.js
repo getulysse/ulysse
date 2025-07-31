@@ -1,10 +1,9 @@
 import fs from 'fs';
 import { config, editConfig, readConfig } from '../src/config';
 import { getRunningApps } from '../src/utils';
-import { blockDistraction } from '../src/block';
 import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
-import { handleAppBlocking, handleTimeout, updateResolvConf } from '../src/daemon';
+import { handleTimeout, updateResolvConf } from '../src/daemon';
 
 jest.mock('../src/utils', () => ({
     ...jest.requireActual('../src/utils'),
@@ -21,14 +20,6 @@ beforeEach(async () => {
     await editConfig(DEFAULT_CONFIG);
     Object.assign(config, DEFAULT_CONFIG);
     jest.spyOn(console, 'log').mockImplementation(() => {});
-});
-
-test.skip('Should block a running app', async () => {
-    blockDistraction({ name: 'node' });
-
-    handleAppBlocking();
-
-    expect(console.log).toHaveBeenCalledWith('Blocking node');
 });
 
 test('Should get all running apps', async () => {

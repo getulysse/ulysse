@@ -131,56 +131,6 @@ test('Should update date when blocking a distraction', async () => {
     expect(date).toBeGreaterThanOrEqual(currentDate);
 });
 
-test.skip('Should get all blocked apps', async () => {
-    const currentDate = new Date('2021-01-01T22:00:00Z');
-    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
-    config.whitelist = [{ name: 'chromium' }];
-    config.blocklist = [
-        { name: 'node' },
-        { name: 'chromium' },
-        { name: 'firefox', time: '0h-20h' },
-        { name: 'example.com' },
-    ];
-
-    const blockedApps = getBlockedApps();
-
-    expect(blockedApps).toEqual(['node']);
-});
-
-test.skip('Should get running blocked apps', () => {
-    config.blocklist = [{ name: 'node' }, { name: 'firefox' }];
-
-    const runningBlockedApps = getRunningBlockedApps();
-
-    expect(runningBlockedApps).toContainEqual({
-        name: 'node',
-        pid: expect.any(Number),
-        cmd: expect.any(String),
-        bin: expect.any(String),
-    });
-});
-
-test.skip('Should block all apps and websites', async () => {
-    await blockDistraction({ name: '*' });
-
-    expect(isDistractionBlocked('example.com')).toEqual(true);
-    expect(isDistractionBlocked('node')).toEqual(true);
-    expect(getRunningBlockedApps()).toContainEqual({
-        name: 'node',
-        pid: expect.any(Number),
-        cmd: expect.any(String),
-        bin: expect.any(String),
-    });
-});
-
-test.skip('Should not block system process', async () => {
-    blockDistraction({ name: '*' });
-
-    const runningBlockedApps = JSON.stringify(getRunningBlockedApps());
-
-    expect(runningBlockedApps).not.toContain('/sbin/init');
-});
-
 test('Should not block all websites outside of a time range', async () => {
     const currentDate = new Date('2021-01-01T12:00:00Z');
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
