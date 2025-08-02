@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
+import { prompt } from 'enquirer';
 import { config } from './config';
 import { daemon } from './daemon';
 import { version } from '../package.json';
@@ -174,6 +175,17 @@ shieldCmd
             console.error('Invalid timeout format. Use "30m", "1h", "2d", etc.');
             return;
         }
+
+        const { confirm } = await prompt({
+            type: 'confirm',
+            name: 'confirm',
+            message: `Are you sure you want to enable shield mode for ${timeout}?`,
+            format: () => '',
+            separator: () => '',
+            symbols: { prefix: '' },
+        });
+
+        if (!confirm) return;
 
         await enableShieldMode(password, timeout);
         console.log(`Shield mode enabled for ${timeout}.`);
