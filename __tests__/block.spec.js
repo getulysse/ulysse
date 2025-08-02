@@ -2,13 +2,15 @@ import { config, editConfig, readConfig } from '../src/config';
 import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
 import {
-    getBlockedApps,
     blockDistraction,
     unblockDistraction,
     isValidDistraction,
     isDistractionBlocked,
-    getRunningBlockedApps,
 } from '../src/block';
+
+jest.mock('../src/utils.js', () => ({
+    ...jest.requireActual('../src/utils.js'),
+}));
 
 beforeEach(async () => {
     await disableShieldMode('ulysse');

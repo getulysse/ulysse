@@ -4,7 +4,7 @@ import { dns } from './dns';
 import { socket } from './socket';
 import { getBlockedApps } from './block';
 import { config, editConfig } from './config';
-import { isSudo, sendNotification } from './utils';
+import { isSudo, sendNotification, getRunningApps, removeDuplicates } from './utils';
 import { isDistractionWhitelisted } from './whitelist';
 import { listActiveWindows, closeWindow } from './x11';
 import { SOCKET_PATH, DNS_SERVER, RESOLV_CONF_PATH } from './constants';
@@ -17,15 +17,22 @@ export const updateResolvConf = (dnsServer = DNS_SERVER) => {
 
 export const handleAppBlocking = async () => {
     const activeWindows = await listActiveWindows();
+    const runningApps = getRunningApps();
     const blockedApps = getBlockedApps();
 
-    const apps = activeWindows
-        .filter(({ name }) => !isDistractionWhitelisted(name))
-        .filter((app) => blockedApps.some((blockedApp) => blockedApp === app.name || blockedApp === '*'));
+    const windowsToClose = blockedApps.includes('*')
+        ? activeWindows.filter((app) => !isDistractionWhitelisted(app.name))
+        : activeWindows.filter((app) => blockedApps.includes(app.name));
+
+    const processesToKill = blockedApps.includes('*')
+        ? runningApps.filter((app) => !isDistractionWhitelisted(app.name))
+        : runningApps.filter((app) => blockedApps.includes(app.name));
+
+    const apps = removeDuplicates([...windowsToClose, ...processesToKill]);
 
     for (const app of apps) {
         try {
-            closeWindow(app.windowId);
+            if (app.windowId) closeWindow(app.windowId); // eslint-disable-line max-depth
             execSync(`kill -9 ${app.pid} > /dev/null 2>&1`);
             console.log(`Blocking ${app.name}`);
             sendNotification('Ulysse', `Blocking ${app.name}`);

@@ -1,8 +1,8 @@
 import { config, readConfig, editConfig } from '../src/config';
 import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
+import { whitelistDistraction } from '../src/whitelist';
 import { blockDistraction, isDistractionBlocked, getRunningBlockedApps } from '../src/block';
-import { isDistractionWhitelisted, whitelistDistraction } from '../src/whitelist';
 
 jest.mock('../src/utils', () => ({
     ...jest.requireActual('../src/utils'),

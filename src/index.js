@@ -58,7 +58,7 @@ blocklistCmd
     .argument('<name>', 'Name of the app or website to unblock')
     .option('-w, --website', 'Unblock a website')
     .option('-a, --app', 'Unblock an app')
-    .action(async (name, { website, app, time }) => {
+    .action(async (name, { website, app }) => {
         if (!website && !app) {
             console.log('You must specify whether it is a website or an app.');
             return;
@@ -126,7 +126,7 @@ whitelistCmd
     .argument('<name>', 'Name of the app or website to remove from whitelist')
     .option('-w, --website', 'Remove a website from the whitelist')
     .option('-a, --app', 'Remove an app from the whitelist')
-    .action(async (name, { website, app, time }) => {
+    .action(async (name, { website, app }) => {
         if (!website && !app) {
             console.log('You must specify whether it is a website or an app.');
             return;
