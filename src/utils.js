@@ -1,6 +1,5 @@
 import fs from 'fs';
 import crypto from 'crypto';
-import { Password } from 'enquirer';
 import { exec } from 'child_process';
 
 export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
@@ -116,25 +115,3 @@ export const isDaemonRunning = () => {
 export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
 
 export const getRootDomain = (domain) => domain.split('.').slice(-2).join('.');
-
-export const getPasswordFromPrompt = async () => {
-    const prompt = new Password({
-        name: 'password',
-        message: 'Password:',
-        mask: '*',
-        symbols: { prefix: '' },
-        separator: () => '',
-    });
-
-    prompt.on('keypress', (_char, key) => {
-        if (key.ctrl && key.name === 'u') {
-            prompt.input = '';
-            prompt.cursor = 0;
-            prompt.render();
-        }
-    });
-
-    const password = await prompt.run();
-
-    return password;
-};

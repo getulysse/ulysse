@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import { prompt } from 'enquirer';
+import { prompt, Password } from 'enquirer';
 import { config } from './config';
 import { daemon } from './daemon';
 import { version } from '../package.json';
 import { DEFAULT_TIMEOUT } from './constants';
-import { isDaemonRunning, isValidTimeout, getPasswordFromPrompt } from './utils';
+import { isDaemonRunning, isValidTimeout } from './utils';
 import { clearBlocklist, blockDistraction, unblockDistraction } from './block';
 import { clearWhitelist, whitelistDistraction, unwhitelistDistraction } from './whitelist';
 import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
@@ -242,7 +242,23 @@ shieldCmd
             return;
         }
 
-        const password = options.password || await getPasswordFromPrompt();
+        const prompt = new Password({
+            name: 'password',
+            message: 'Password:',
+            mask: '*',
+            symbols: { prefix: '' },
+            separator: () => '',
+        });
+
+        prompt.on('keypress', (_char, key) => {
+            if (key.ctrl && key.name === 'u') {
+                prompt.input = '';
+                prompt.cursor = 0;
+                prompt.render();
+            }
+        });
+
+        const password = options.password || await prompt.run();
 
         if (!isValidPassword(password)) {
             console.log('Invalid password');
