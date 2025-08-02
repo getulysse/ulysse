@@ -3,6 +3,7 @@ import { DEFAULT_CONFIG } from '../src/constants';
 import { whitelistDistraction } from '../src/whitelist';
 import { enableShieldMode, disableShieldMode } from '../src/shield';
 import { blockDistraction, unblockDistraction } from '../src/block';
+import { sha256 } from '../src/utils';
 
 beforeEach(async () => {
     await disableShieldMode('ulysse');
@@ -16,7 +17,7 @@ test('Should enable shield mode', async () => {
 
     const { password, passwordHash, shield } = readConfig();
     expect(password).toBeUndefined();
-    expect(passwordHash).toBe('d97e609b03de7506d4be3bee29f2431b40e375b33925c2f7de5466ce1928da1b');
+    expect(passwordHash).toBe(sha256('ulysse'));
     expect(shield.enable).toBe(true);
 });
 

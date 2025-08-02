@@ -15,7 +15,11 @@ export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
     }
 };
 
-export const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
+export const sha256 = (str) => {
+    const salt = crypto.createHash('sha256').update('ulysse').digest('hex');
+
+    return crypto.pbkdf2Sync(str, salt, 100000, 64, 'sha512').toString('hex');
+};
 
 export const removeDuplicates = (arr) => {
     const set = new Set(arr.map((e) => JSON.stringify(e)));
