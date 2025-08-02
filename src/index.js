@@ -60,6 +60,11 @@ blocklistCmd
     .option('-w, --website', 'Unblock a website')
     .option('-a, --app', 'Unblock an app')
     .action(async (name, { website, app }) => {
+        if (config.shield.enable) {
+            console.log('You must disable the shield mode first.');
+            return;
+        }
+
         if (!website && !app) {
             console.log('You must specify whether it is a website or an app.');
             return;
@@ -128,6 +133,11 @@ whitelistCmd
     .option('-w, --website', 'Remove a website from the whitelist')
     .option('-a, --app', 'Remove an app from the whitelist')
     .action(async (name, { website, app }) => {
+        if (config.shield.enable) {
+            console.log('You must disable the shield mode first.');
+            return;
+        }
+
         if (!website && !app) {
             console.log('You must specify whether it is a website or an app.');
             return;
@@ -144,6 +154,11 @@ whitelistCmd
     .command('clear')
     .description('Clear the whitelist')
     .action(async () => {
+        if (config.shield.enable) {
+            console.log('You must disable the shield mode first.');
+            return;
+        }
+
         await clearWhitelist();
         console.log('Whitelist cleared.');
     });
@@ -218,18 +233,19 @@ shieldCmd
     .action(() => {
         const { shield } = config;
 
-        if (shield.enable) {
-            console.log('Shield mode is enabled.');
+        if (!shield.enable) {
+            console.log('Shield mode is disabled');
+            return;
+        }
 
-            if (shield.timeout) {
-                const now = Math.floor(Date.now() / 1000);
-                const minutes = Math.max(0, Math.floor((shield.timeout - now) / 60));
-                const seconds = Math.max(0, (shield.timeout - now) % 60);
+        if (shield.timeout) {
+            const now = Math.floor(Date.now() / 1000);
+            const minutes = Math.max(0, Math.floor((shield.timeout - now) / 60));
+            const seconds = Math.max(0, (shield.timeout - now) % 60);
 
-                console.log(`Time remaining: ${minutes}m${seconds}s`);
-            }
+            console.log(`Shield mode is enabled (${minutes}m${seconds}s remaining)`);
         } else {
-            console.log('Shield mode is disabled.');
+            console.log('Shield mode is enabled');
         }
     });
 
