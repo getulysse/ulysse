@@ -1,6 +1,6 @@
 import fs from 'fs';
 import crypto from 'crypto';
-import readline from 'readline';
+import { Password } from 'enquirer';
 import { exec } from 'child_process';
 
 export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
@@ -49,22 +49,6 @@ export const generatePassword = (length = 20) => {
     } while (!checkPassword(password));
 
     return password;
-};
-
-export const displayPrompt = async (message) => {
-    if (process.env.NODE_ENV === 'test') return true;
-
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-
-    return new Promise((resolve) => {
-        rl.question(message, (answer) => {
-            rl.close();
-            resolve(answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'y');
-        });
-    });
 };
 
 export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000)) => {
@@ -132,3 +116,25 @@ export const isDaemonRunning = () => {
 export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
 
 export const getRootDomain = (domain) => domain.split('.').slice(-2).join('.');
+
+export const getPasswordFromPrompt = async () => {
+    const prompt = new Password({
+        name: 'password',
+        message: 'Password:',
+        mask: '*',
+        symbols: { prefix: '' },
+        separator: () => '',
+    });
+
+    prompt.on('keypress', (_char, key) => {
+        if (key.ctrl && key.name === 'u') {
+            prompt.input = '';
+            prompt.cursor = 0;
+            prompt.render();
+        }
+    });
+
+    const password = await prompt.run();
+
+    return password;
+};

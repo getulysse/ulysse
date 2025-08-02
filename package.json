@@ -33,6 +33,7 @@
   ],
   "dependencies": {
     "dns-packet": "^5.6.1",
+    "enquirer": "^2.4.1",
     "x11": "^2.3.0"
   },
   "devDependencies": {

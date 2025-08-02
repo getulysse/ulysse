@@ -5,7 +5,7 @@ import { config } from './config';
 import { daemon } from './daemon';
 import { version } from '../package.json';
 import { DEFAULT_TIMEOUT } from './constants';
-import { isDaemonRunning, isValidTimeout } from './utils';
+import { isDaemonRunning, isValidTimeout, getPasswordFromPrompt } from './utils';
 import { clearBlocklist, blockDistraction, listBlocklist, unblockDistraction } from './block';
 import { clearWhitelist, whitelistDistraction, listWhitelist, unwhitelistDistraction } from './whitelist';
 import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
@@ -183,11 +183,13 @@ shieldCmd
     .command('disable')
     .description('Disable the shield mode')
     .option('-p, --password <password>', 'Password to disable shield mode')
-    .action(async ({ password }) => {
+    .action(async (options) => {
         if (!config.shield.enable) {
             console.log('Shield mode is already disabled.');
             return;
         }
+
+        const password = options.password || await getPasswordFromPrompt();
 
         if (!isValidPassword(password)) {
             console.log('Invalid password');
