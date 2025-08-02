@@ -30,15 +30,16 @@ beforeEach(async () => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 
-test('Should get all running apps', async () => {
-    getRunningApps.mockReturnValue([{ name: 'node', pid: 1234 }]);
-    const apps = getRunningApps();
+test('Should block a running app', async () => {
+    getRunningApps.mockReturnValue([{ name: 'signal-desktop' }]);
+    await blockDistraction({ name: 'signal-desktop' });
 
-    expect(getRunningApps).toHaveBeenCalled();
-    expect(JSON.stringify(apps)).toContain('node');
+    await handleAppBlocking();
+
+    expect(console.log).toHaveBeenCalledWith('Blocking signal-desktop');
 });
 
-test('Should block app by windows name', async () => {
+test('Should block a window', async () => {
     listActiveWindows.mockResolvedValue([{ name: 'signal' }]);
     blockDistraction({ name: 'signal' });
 
@@ -47,14 +48,12 @@ test('Should block app by windows name', async () => {
     expect(console.log).toHaveBeenCalledWith('Blocking signal');
 });
 
-test('Should block app by process name', async () => {
-    getRunningApps.mockReturnValue([{ name: 'signal-desktop', pid: 1234 }]);
+test('Should get all running apps', async () => {
+    getRunningApps.mockReturnValue([{ name: 'node', pid: 1234 }]);
+    const apps = getRunningApps();
 
-    await blockDistraction({ name: 'signal-desktop' });
-
-    await handleAppBlocking();
-
-    expect(console.log).toHaveBeenCalledWith('Blocking signal-desktop');
+    expect(getRunningApps).toHaveBeenCalled();
+    expect(JSON.stringify(apps)).toContain('node');
 });
 
 test('Should edit /etc/resolv.conf', async () => {
