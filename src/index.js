@@ -310,8 +310,14 @@ program.commands.forEach((cmd) => {
     }
 });
 
-program.parse(process.argv);
+const main = () => program.parse(process.argv);
+
+if (process.env.NODE_ENV !== 'test') {
+    main();
+}
 
 if (!process.argv.slice(2).length) {
     program.outputHelp();
 }
+
+export { program };
