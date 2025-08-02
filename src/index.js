@@ -7,8 +7,8 @@ import { daemon } from './daemon';
 import { version } from '../package.json';
 import { DEFAULT_TIMEOUT } from './constants';
 import { isDaemonRunning, isValidTimeout, getPasswordFromPrompt } from './utils';
-import { clearBlocklist, blockDistraction, listBlocklist, unblockDistraction } from './block';
-import { clearWhitelist, whitelistDistraction, listWhitelist, unwhitelistDistraction } from './whitelist';
+import { clearBlocklist, blockDistraction, unblockDistraction } from './block';
+import { clearWhitelist, whitelistDistraction, unwhitelistDistraction } from './whitelist';
 import { enableShieldMode, disableShieldMode, isValidPassword } from './shield';
 
 program
@@ -95,7 +95,20 @@ blocklistCmd
     .alias('l')
     .description('List all blocked items')
     .action(() => {
-        listBlocklist();
+        const { blocklist } = config;
+
+        if (blocklist.length === 0) {
+            console.log('No blocked items found.');
+            return;
+        }
+
+        console.log('Blocked items:');
+
+        blocklist.forEach((item, index) => {
+            const timeInfo = item.time ? ` (time: ${item.time})` : '';
+            const typeInfo = item.type ? ` [${item.type}]` : '';
+            console.log(`  ${index + 1}. ${item.name}${typeInfo}${timeInfo}`);
+        });
     });
 
 const whitelistCmd = program
@@ -168,7 +181,20 @@ whitelistCmd
     .alias('l')
     .description('List all whitelisted items')
     .action(() => {
-        listWhitelist();
+        const { whitelist } = config;
+
+        if (whitelist.length === 0) {
+            console.log('No whitelisted items found.');
+            return;
+        }
+
+        console.log('Whitelisted items:');
+
+        whitelist.forEach((item, index) => {
+            const timeInfo = item.time ? ` (time: ${item.time})` : '';
+            const typeInfo = item.type ? ` [${item.type}]` : '';
+            console.log(`  ${index + 1}. ${item.name}${typeInfo}${timeInfo}`);
+        });
     });
 
 const shieldCmd = program
