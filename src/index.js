@@ -50,7 +50,7 @@ blocklistCmd
 
         await blockDistraction({ name, type, time });
 
-        console.log(`Blocking ${type} ${name}${time ? ` within interval ${time}` : ''}`);
+        console.log(`Blocking ${type} ${name}${time ? ` during ${time}` : ''}`);
     });
 
 blocklistCmd
