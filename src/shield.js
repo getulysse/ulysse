@@ -15,13 +15,8 @@ export const isValidPassword = (password) => {
 export const enableShieldMode = async (password, timeout = DEFAULT_TIMEOUT) => {
     const passwordHash = password ? sha256(password) : null;
 
-    if (password) {
-        console.log(`Your password is: ${password}`);
-    }
-
     await editConfig({
         ...config,
-        password,
         passwordHash,
         shield: { enable: true, ...(timeout ? { timeout: createTimeout(timeout) } : {}) },
     });
