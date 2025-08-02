@@ -212,6 +212,27 @@ shieldCmd
         console.log('Shield mode disabled.');
     });
 
+shieldCmd
+    .command('status')
+    .description('Show the shield mode status')
+    .action(() => {
+        const { shield } = config;
+
+        if (shield.enable) {
+            console.log('Shield mode is enabled.');
+
+            if (shield.timeout) {
+                const now = Math.floor(Date.now() / 1000);
+                const minutes = Math.max(0, Math.floor((shield.timeout - now) / 60));
+                const seconds = Math.max(0, (shield.timeout - now) % 60);
+
+                console.log(`Time remaining: ${minutes}m${seconds}s`);
+            }
+        } else {
+            console.log('Shield mode is disabled.');
+        }
+    });
+
 program.addHelpText('after', `
 Examples:
   ulysse daemon start
