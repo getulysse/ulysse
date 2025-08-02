@@ -164,6 +164,19 @@ test('Should get running blocked apps', () => {
     });
 });
 
+test('Should block all apps and websites', async () => {
+    await blockDistraction({ name: '*' });
+
+    expect(isDistractionBlocked('example.com')).toEqual(true);
+    expect(isDistractionBlocked('node')).toEqual(true);
+    expect(getRunningBlockedApps()).toContainEqual({
+        name: 'node',
+        pid: expect.any(Number),
+        cmd: expect.any(String),
+        bin: expect.any(String),
+    });
+});
+
 test('Should not block all websites outside of a time range', async () => {
     const currentDate = new Date('2021-01-01T12:00:00Z');
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
