@@ -40,7 +40,7 @@ export const isValidDomain = (domain) => DOMAIN_REGEX.test(domain);
 
 export const isDomainBlocked = (domain, rule, rootDomain) => {
     if (!isValidDomain(domain)) return false;
-    return rule === '*' || rule === '*.*' || rule === domain || rule === `*.${rootDomain}` || rule === `*.${domain}`;
+    return rule === '*.*' || rule === domain || rule === `*.${rootDomain}` || rule === `*.${domain}`;
 };
 
 export const isDistractionBlocked = (distraction) => {
@@ -49,7 +49,7 @@ export const isDistractionBlocked = (distraction) => {
     const rootDomain = getRootDomain(distraction);
     const { blocklist } = config;
 
-    return blocklist.some(({ name, time }) => (name === '*' || name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
+    return blocklist.some(({ name, time }) => (name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
 };
 
 export const isValidApp = (app) => {
