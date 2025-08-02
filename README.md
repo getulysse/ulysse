@@ -60,8 +60,8 @@ Commands:
 Examples:
   ulysse daemon start
   ulysse blocklist add --app firefox
-  ulysse blocklist add --website youtube.com
   ulysse whitelist add --website wikipedia.org
+  ulysse blocklist add --website youtube.com -t 8h-20h
   ulysse shield enable
 ```
 
