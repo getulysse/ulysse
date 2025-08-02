@@ -24,9 +24,7 @@ export const handleAppBlocking = async () => {
         ? activeWindows.filter((app) => !isDistractionWhitelisted(app.name))
         : activeWindows.filter((app) => blockedApps.includes(app.name));
 
-    const processesToKill = blockedApps.includes('*')
-        ? runningApps.filter((app) => !isDistractionWhitelisted(app.name))
-        : runningApps.filter((app) => blockedApps.includes(app.name));
+    const processesToKill = runningApps.filter((app) => blockedApps.includes(app.name));
 
     const apps = removeDuplicates([...windowsToClose, ...processesToKill]);
 
