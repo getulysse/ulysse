@@ -1,6 +1,5 @@
 import fs from 'fs';
 import crypto from 'crypto';
-import readline from 'readline';
 import { exec } from 'child_process';
 
 export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
@@ -15,7 +14,11 @@ export const tryCatch = (fn, fallback = false, retry = 0) => (...args) => {
     }
 };
 
-export const sha256 = (str) => crypto.createHash('sha256').update(str).digest('hex');
+export const sha256 = (str) => {
+    const salt = crypto.createHash('sha256').update('ulysse').digest('hex');
+
+    return crypto.pbkdf2Sync(str, salt, 100000, 64, 'sha512').toString('hex');
+};
 
 export const removeDuplicates = (arr) => {
     const set = new Set(arr.map((e) => JSON.stringify(e)));
@@ -34,45 +37,6 @@ export const sendNotification = (title, message) => {
     exec(`sudo -u $SUDO_USER ${envs} notify-send "${title}" "${message}"`);
 };
 
-export const generatePassword = (length = 20) => {
-    let password;
-
-    const wishlist = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@%_+';
-    const checkPassword = (pwd) => /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[@%_+]/.test(pwd);
-
-    do {
-        password = Array.from(crypto.randomBytes(length)).map((byte) => wishlist[byte % wishlist.length]).join('');
-    } while (!checkPassword(password));
-
-    return password;
-};
-
-export const displayPrompt = async (message) => {
-    if (process.env.NODE_ENV === 'test') return true;
-
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-
-    return new Promise((resolve) => {
-        rl.question(message, (answer) => {
-            rl.close();
-            resolve(answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'y');
-        });
-    });
-};
-
-export const getParam = (key) => {
-    const index = process.argv.indexOf(key);
-
-    if (index === -1) return undefined;
-
-    if (['--force', '-f'].includes(key) && index !== -1) return true;
-
-    return process.argv[index + 1];
-};
-
 export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000)) => {
     const units = { m: 60, h: 3600, d: 86400 };
     const match = duration.match(/(\d+)([mhd])/g);
@@ -82,6 +46,15 @@ export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000
         const unit = part.match(/[mhd]/)[0];
         return acc + value * units[unit];
     }, timestamp);
+};
+
+export const isValidTimeout = (timeout) => {
+    if (!timeout) return false;
+
+    const durationPattern = /^(\d+d)?(\d+h)?(\d+m)?$/;
+    const intervalPattern = /^\d+h-\d+h$/;
+
+    return durationPattern.test(timeout) || intervalPattern.test(timeout);
 };
 
 export const getTimeType = (time) => {
@@ -121,11 +94,9 @@ export const getRunningApps = tryCatch(() => {
 export const isDaemonRunning = () => {
     const apps = getRunningApps();
 
-    const cmds = ['ulysse -d', 'ulysse --daemon'];
+    const cmd = 'ulysse daemon start';
 
-    return cmds.some((cmd) => apps.some((app) => app.cmd.includes(cmd)));
+    return apps.some((app) => app.cmd.includes(cmd));
 };
-
-export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
 
 export const getRootDomain = (domain) => domain.split('.').slice(-2).join('.');

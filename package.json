@@ -1,7 +1,7 @@
 {
   "name": "ulysse",
   "author": "johackim",
-  "description": "Simple CLI tool for blocking your distracting apps and websites",
+  "description": "A simple CLI tool for blocking your distracting apps and websites",
   "homepage": "https://github.com/getulysse/ulysse",
   "license": "GPL-3.0",
   "main": "dist/index.js",
@@ -33,7 +33,8 @@
   ],
   "dependencies": {
     "dns-packet": "^5.6.1",
-    "gun": "^0.2020.1240"
+    "enquirer": "^2.4.1",
+    "x11": "^2.3.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.27.2",
@@ -45,6 +46,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
+    "commander": "^14.0.0",
     "dotenv": "^16.5.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",

@@ -18,9 +18,20 @@ export const blockDistraction = async (distraction) => {
 };
 
 export const unblockDistraction = async (distraction) => {
-    if (config.shield) return;
+    if (config.shield.enable) {
+        console.log('You must disable the shield mode first.');
+        return;
+    }
 
-    config.blocklist = config.blocklist.filter(({ name, time }) => JSON.stringify({ name, time }) !== JSON.stringify(distraction));
+    config.blocklist = config.blocklist.filter((d) => d.name !== distraction.name || d.type !== distraction.type);
+
+    await editConfig(config);
+};
+
+export const clearBlocklist = async () => {
+    if (config.shield.enable) return;
+
+    config.blocklist = [];
 
     await editConfig(config);
 };
@@ -37,8 +48,6 @@ export const isDistractionBlocked = (distraction) => {
 
     const rootDomain = getRootDomain(distraction);
     const { blocklist } = config;
-
-    if (blocklist.some(({ name, time }) => name === '*' && isWithinTimeRange(time))) return true;
 
     return blocklist.some(({ name, time }) => (name === distraction || isDomainBlocked(distraction, name, rootDomain)) && isWithinTimeRange(time));
 };
@@ -73,12 +82,10 @@ export const isValidDistraction = (distraction) => {
 export const getBlockedApps = () => {
     const { blocklist } = config;
 
-    const isApp = (name) => !isValidDomain(name);
-
     return blocklist
-        .filter(({ name }) => isApp(name))
         .filter(({ time }) => isWithinTimeRange(time))
         .filter(({ name }) => !isDistractionWhitelisted(name))
+        .filter(({ name }) => isValidApp(name) && !isValidDomain(name))
         .map(({ name }) => name);
 };
 

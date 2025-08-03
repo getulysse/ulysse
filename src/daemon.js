@@ -1,12 +1,12 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
-import { config, editConfig } from './config';
-import { getRunningBlockedApps } from './block';
-import { isSudo, sendNotification } from './utils';
-import { DNS_SERVER, RESOLV_CONF_PATH } from './constants';
-import { synchronize } from './synchronize';
-import { socket } from './socket';
 import { dns } from './dns';
+import { socket } from './socket';
+import { config, editConfig } from './config';
+import { isSudo, sendNotification, getRunningApps, removeDuplicates } from './utils';
+import { isDistractionWhitelisted } from './whitelist';
+import { listActiveWindows, closeWindow } from './x11';
+import { SOCKET_PATH, DNS_SERVER, RESOLV_CONF_PATH } from './constants';
 
 export const updateResolvConf = (dnsServer = DNS_SERVER) => {
     execSync(`chattr -i ${RESOLV_CONF_PATH}`);
@@ -14,11 +14,22 @@ export const updateResolvConf = (dnsServer = DNS_SERVER) => {
     execSync(`chattr +i ${RESOLV_CONF_PATH}`);
 };
 
-export const handleAppBlocking = () => {
-    const runningBlockedApps = getRunningBlockedApps();
+export const handleAppBlocking = async () => {
+    const runningApps = getRunningApps();
+    const activeWindows = await listActiveWindows();
+    const blockedApps = config.blocklist.map(({ name }) => name);
 
-    for (const app of runningBlockedApps) {
+    const windowsToClose = blockedApps.includes('*')
+        ? activeWindows.filter((app) => !isDistractionWhitelisted(app.name))
+        : activeWindows.filter((app) => blockedApps.includes(app.name));
+
+    const processesToKill = runningApps.filter((app) => blockedApps.includes(app.name));
+
+    const apps = removeDuplicates([...windowsToClose, ...processesToKill]);
+
+    for (const app of apps) {
         try {
+            if (app.windowId) closeWindow(app.windowId); // eslint-disable-line max-depth
             execSync(`kill -9 ${app.pid} > /dev/null 2>&1`);
             console.log(`Blocking ${app.name}`);
             sendNotification('Ulysse', `Blocking ${app.name}`);
@@ -32,29 +43,39 @@ export const handleTimeout = async () => {
     const blocklist = config.blocklist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
     const whitelist = config.whitelist.filter(({ timeout }) => !timeout || timeout >= Math.floor(Date.now() / 1000));
 
-    if (blocklist.length !== config.blocklist.length || whitelist.length !== config.whitelist.length) {
+    if (blocklist.length !== config.blocklist.length) {
         await editConfig(config);
+    }
+
+    if (whitelist.length !== config.whitelist.length) {
+        await editConfig(config);
+    }
+
+    if (config.shield.timeout <= Math.floor(Date.now() / 1000)) {
+        console.log('Shield mode timeout reached, disabling shield mode.');
+        await editConfig({ ...config, shield: { enable: false } });
     }
 };
 
 export const cleanUpAndExit = () => {
     updateResolvConf();
+    fs.unlinkSync(SOCKET_PATH);
     process.exit(0);
 };
 
-export const daemon = () => {
+export const daemon = async () => {
     if (!isSudo()) {
         console.error('You must run this command with sudo.');
         process.exit(1);
     }
 
-    setInterval(() => {
-        handleAppBlocking();
+    setInterval(async () => {
+        await handleAppBlocking();
     }, 1000);
 
     setInterval(() => {
         handleTimeout();
-    }, 60000);
+    }, 1000);
 
     console.log('Starting daemon...');
     updateResolvConf('127.0.0.1');
@@ -62,7 +83,6 @@ export const daemon = () => {
     process.on('SIGINT', cleanUpAndExit);
     process.on('SIGTERM', cleanUpAndExit);
 
-    synchronize();
     socket();
     dns();
 };

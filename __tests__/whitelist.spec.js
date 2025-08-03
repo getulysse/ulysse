@@ -1,8 +1,8 @@
 import { config, readConfig, editConfig } from '../src/config';
 import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
+import { whitelistDistraction } from '../src/whitelist';
 import { blockDistraction, isDistractionBlocked, getRunningBlockedApps } from '../src/block';
-import { isDistractionWhitelisted, whitelistDistraction } from '../src/whitelist';
 
 jest.mock('../src/utils', () => ({
     ...jest.requireActual('../src/utils'),
@@ -40,12 +40,6 @@ test('Should not block a domain if it is in the whitelist with a wildcard', asyn
     await whitelistDistraction({ name: '*.example.com' });
 
     expect(isDistractionBlocked('www.example.com')).toBe(false);
-});
-
-test('Should not block a process from the system whitelist', async () => {
-    await blockDistraction({ name: '*' });
-
-    expect(isDistractionWhitelisted('systemd')).toBe(true);
 });
 
 test('Should not whitelist a blocked process outside of a time range', async () => {

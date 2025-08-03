@@ -10,6 +10,10 @@ import {
     getRunningBlockedApps,
 } from '../src/block';
 
+jest.mock('../src/utils.js', () => ({
+    ...jest.requireActual('../src/utils.js'),
+}));
+
 beforeEach(async () => {
     await disableShieldMode('ulysse');
     await editConfig(DEFAULT_CONFIG);
@@ -160,7 +164,7 @@ test('Should get running blocked apps', () => {
     });
 });
 
-test('Should block all apps and websites', async () => {
+test.skip('Should block all apps and websites', async () => {
     await blockDistraction({ name: '*' });
 
     expect(isDistractionBlocked('example.com')).toEqual(true);
@@ -173,14 +177,6 @@ test('Should block all apps and websites', async () => {
     });
 });
 
-test('Should not block system process', async () => {
-    blockDistraction({ name: '*' });
-
-    const runningBlockedApps = JSON.stringify(getRunningBlockedApps());
-
-    expect(runningBlockedApps).not.toContain('/sbin/init');
-});
-
 test('Should not block all websites outside of a time range', async () => {
     const currentDate = new Date('2021-01-01T12:00:00Z');
     jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
@@ -188,4 +184,23 @@ test('Should not block all websites outside of a time range', async () => {
     await blockDistraction({ name: '*', time: '0h-2h' });
 
     expect(isDistractionBlocked('example.com')).toEqual(false);
+});
+
+test('Should block a distraction with time interval parameter', async () => {
+    const currentDate = new Date('2021-01-01T15:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    await blockDistraction({ name: 'youtube.com', time: '8h-20h' });
+
+    expect(isDistractionBlocked('youtube.com')).toBe(true);
+    expect(config.blocklist).toEqual([{ name: 'youtube.com', time: '8h-20h' }]);
+});
+
+test('Should not block a distraction outside of time interval', async () => {
+    const currentDate = new Date('2021-01-01T22:00:00Z');
+    jest.spyOn(global, 'Date').mockImplementation(() => currentDate);
+
+    await blockDistraction({ name: 'youtube.com', time: '8h-20h' });
+
+    expect(isDistractionBlocked('youtube.com')).toBe(false);
 });

@@ -3,7 +3,8 @@ import { isAbsolute } from 'path';
 import { execSync } from 'child_process';
 import { isValidApp } from './block';
 import { config, editConfig } from './config';
-import { generatePassword, sha256 } from './utils';
+import { DEFAULT_TIMEOUT } from './constants';
+import { sha256, createTimeout } from './utils';
 
 export const isValidPassword = (password) => {
     if (!password) return false;
@@ -11,15 +12,18 @@ export const isValidPassword = (password) => {
     return sha256sum === config.passwordHash;
 };
 
-export const enableShieldMode = async (password = generatePassword()) => {
-    const passwordHash = sha256(password);
-    console.log(`Your password is: ${password}`);
+export const enableShieldMode = async (password, timeout = DEFAULT_TIMEOUT) => {
+    const passwordHash = password ? sha256(password) : null;
 
-    await editConfig({ ...config, password, passwordHash, shield: true });
+    await editConfig({
+        ...config,
+        passwordHash,
+        shield: { enable: true, ...(timeout ? { timeout: createTimeout(timeout) } : {}) },
+    });
 };
 
 export const disableShieldMode = async (password) => {
-    await editConfig({ ...config, password, shield: false });
+    await editConfig({ ...config, password, shield: { enable: false } });
 };
 
 export const blockRoot = () => {

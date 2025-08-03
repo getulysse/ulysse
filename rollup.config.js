@@ -7,13 +7,20 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 export default {
     input: 'src/index.js',
     output: {
-        format: 'cjs', dir: 'dist', exports: 'named',
+        dir: 'dist',
+        format: 'cjs',
+        strict: false,
+        exports: 'named',
     },
     plugins: [
         json(),
-        terser(),
-        commonjs(),
         nodeResolve(),
+        commonjs({
+            dynamicRequireTargets: [
+                'node_modules/x11/lib/ext/*.js',
+            ],
+        }),
         babel({ babelHelpers: 'bundled' }),
+        terser(),
     ],
 };

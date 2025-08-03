@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { config, editConfig, readConfig } from '../src/config';
 import { getRunningApps } from '../src/utils';
+import { listActiveWindows } from '../src/x11';
 import { blockDistraction } from '../src/block';
 import { DEFAULT_CONFIG } from '../src/constants';
 import { disableShieldMode } from '../src/shield';
@@ -9,6 +10,12 @@ import { handleAppBlocking, handleTimeout, updateResolvConf } from '../src/daemo
 jest.mock('../src/utils', () => ({
     ...jest.requireActual('../src/utils'),
     isSudo: jest.fn().mockImplementation(() => true),
+    getRunningApps: jest.fn(),
+}));
+
+jest.mock('../src/x11', () => ({
+    listActiveWindows: jest.fn().mockResolvedValue([]),
+    closeWindow: jest.fn(),
 }));
 
 jest.mock('child_process', () => ({
@@ -24,16 +31,28 @@ beforeEach(async () => {
 });
 
 test('Should block a running app', async () => {
-    blockDistraction({ name: 'node' });
+    getRunningApps.mockReturnValue([{ name: 'signal-desktop' }]);
+    await blockDistraction({ name: 'signal-desktop' });
 
-    handleAppBlocking();
+    await handleAppBlocking();
 
-    expect(console.log).toHaveBeenCalledWith('Blocking node');
+    expect(console.log).toHaveBeenCalledWith('Blocking signal-desktop');
+});
+
+test('Should block a window', async () => {
+    listActiveWindows.mockResolvedValue([{ name: 'signal' }]);
+    blockDistraction({ name: 'signal' });
+
+    await handleAppBlocking();
+
+    expect(console.log).toHaveBeenCalledWith('Blocking signal');
 });
 
 test('Should get all running apps', async () => {
+    getRunningApps.mockReturnValue([{ name: 'node', pid: 1234 }]);
     const apps = getRunningApps();
 
+    expect(getRunningApps).toHaveBeenCalled();
     expect(JSON.stringify(apps)).toContain('node');
 });
 
