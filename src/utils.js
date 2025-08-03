@@ -37,19 +37,6 @@ export const sendNotification = (title, message) => {
     exec(`sudo -u $SUDO_USER ${envs} notify-send "${title}" "${message}"`);
 };
 
-export const generatePassword = (length = 20) => {
-    let password;
-
-    const wishlist = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@%_+';
-    const checkPassword = (pwd) => /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /[0-9]/.test(pwd) && /[@%_+]/.test(pwd);
-
-    do {
-        password = Array.from(crypto.randomBytes(length)).map((byte) => wishlist[byte % wishlist.length]).join('');
-    } while (!checkPassword(password));
-
-    return password;
-};
-
 export const createTimeout = (duration, timestamp = Math.floor(Date.now() / 1000)) => {
     const units = { m: 60, h: 3600, d: 86400 };
     const match = duration.match(/(\d+)([mhd])/g);
@@ -111,7 +98,5 @@ export const isDaemonRunning = () => {
 
     return apps.some((app) => app.cmd.includes(cmd));
 };
-
-export const getAlias = (key) => key?.replace('--', '-').slice(0, 2);
 
 export const getRootDomain = (domain) => domain.split('.').slice(-2).join('.');

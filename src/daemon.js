@@ -2,7 +2,6 @@ import fs from 'fs';
 import { execSync } from 'child_process';
 import { dns } from './dns';
 import { socket } from './socket';
-import { getBlockedApps } from './block';
 import { config, editConfig } from './config';
 import { isSudo, sendNotification, getRunningApps, removeDuplicates } from './utils';
 import { isDistractionWhitelisted } from './whitelist';
@@ -16,9 +15,9 @@ export const updateResolvConf = (dnsServer = DNS_SERVER) => {
 };
 
 export const handleAppBlocking = async () => {
-    const activeWindows = await listActiveWindows();
     const runningApps = getRunningApps();
-    const blockedApps = getBlockedApps();
+    const activeWindows = await listActiveWindows();
+    const blockedApps = config.blocklist.map(({ name }) => name);
 
     const windowsToClose = blockedApps.includes('*')
         ? activeWindows.filter((app) => !isDistractionWhitelisted(app.name))

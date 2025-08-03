@@ -25,9 +25,7 @@ export const whitelistDistraction = async (distraction) => {
 };
 
 export const unwhitelistDistraction = async (distraction) => {
-    config.whitelist = config.whitelist.filter(
-        (d) => d.name !== distraction.name || d.type !== distraction.type,
-    );
+    config.whitelist = config.whitelist.filter((d) => d.name !== distraction.name || d.type !== distraction.type);
 
     await editConfig(config);
 };

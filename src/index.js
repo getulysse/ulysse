@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import { prompt, Password } from 'enquirer';
+import { prompt as Prompt, Password } from 'enquirer';
 import { config } from './config';
 import { daemon } from './daemon';
 import { version } from '../package.json';
@@ -217,7 +217,7 @@ shieldCmd
             return;
         }
 
-        const { confirm } = await prompt({
+        const { confirm } = await Prompt({
             type: 'confirm',
             name: 'confirm',
             message: `Are you sure you want to enable shield mode for ${timeout}?`,

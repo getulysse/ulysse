@@ -2,7 +2,6 @@
 
 [![Version](https://img.shields.io/npm/v/ulysse?label=Version&style=flat&colorA=2B323B&colorB=1e2329)](https://www.npmjs.com/package/ulysse)
 [![License](https://img.shields.io/badge/license-GPL%20v3%2B-yellow.svg?label=License&style=flat&colorA=2B323B&colorB=1e2329)](https://raw.githubusercontent.com/johackim/ulysse/master/LICENSE.txt)
-[![Code Climate](https://img.shields.io/codeclimate/maintainability/johackim/ulysse.svg?label=Maintainability&style=flat&colorA=2B323B&colorB=1e2329)](https://codeclimate.com/github/johackim/ulysse)
 
 Ulysse is a simple CLI tool for blocking your distracting apps and websites.
 
