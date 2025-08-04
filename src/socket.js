@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import fs from 'fs';
 import net from 'net';
 import { config } from './config';

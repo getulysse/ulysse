@@ -47,7 +47,6 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "commander": "^14.0.0",
-    "dotenv": "^16.5.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.31.0",
@@ -61,7 +60,7 @@
     "prebuild": "rm -rf dist",
     "build": "rollup --bundleConfigAsCjs -c",
     "start": "babel-node src/index.js",
-    "test": "DOTENV_CONFIG_PATH=.env.test jest -i --setupFiles dotenv/config --forceExit"
+    "test": "node --env-file=.env.test ./node_modules/.bin/jest -i --forceExit"
   },
   "jest": {
     "globalSetup": "./jest.setup.js",
