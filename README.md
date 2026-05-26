@@ -1,83 +1,77 @@
-# Ulysse
+# ulysse
 
-[![Version](https://img.shields.io/npm/v/ulysse?label=Version&style=flat&colorA=2B323B&colorB=1e2329)](https://www.npmjs.com/package/ulysse)
-[![License](https://img.shields.io/badge/license-GPL%20v3%2B-yellow.svg?label=License&style=flat&colorA=2B323B&colorB=1e2329)](https://raw.githubusercontent.com/johackim/ulysse/master/LICENSE.txt)
+[![License](https://img.shields.io/badge/license-GPL%20v3%2B-yellow.svg?label=License&style=flat&colorA=2B323B&colorB=1e2329)](https://raw.githubusercontent.com/getulysse/ulysse/master/LICENSE.txt)
 
-Ulysse is a simple CLI tool for blocking your distracting apps and websites.
+ulysse is a simple CLI tool for blocking all apps and websites except the ones you whitelist.
 
-Prevent distractions by blocking your most distracting apps and websites, even if you are the administrator of your computer.
+The block cannot be bypassed from software, even if you are the administrator of your computer, because it uses eBPF to block apps and websites at the kernel level.
+
+Physical bypass (GRUB, Live USB) is out of scope.
 
 > [!WARNING]
-> The shield mode block root access to your computer and can block you from disabling Ulysse.
+> This project is in early development and is not yet ready for production use. Use at your own risk.
 >
-> Make sure to remember your password.
->
-> If you are blocked, you can still disable Ulysse by running the following commands from a live USB:
+> If you ever lock yourself out, boot from a Live USB and run:
 >
 > ```bash
-> rm /etc/sudoers.d/ulysse
-> usermod -s /bin/bash root # Or edit /etc/passwd file
-> echo 'nameserver 9.9.9.9' | tee /etc/resolv.conf
+> mount /dev/sdX /mnt
+> chroot /mnt
+> ulysse unlock
 > ```
+
+## 🤔 Why?
+
+I created ulysse because I wanted a simple way to block all apps and websites by default and only allow the ones I need, without any way to bypass the block.
 
 ## 📋 Requirements
 
-- X11
-- Linux
-- Systemd
-- Node.js >= 14.0.0
-
-## ✨ Features
-
-- [x] Block your distracting apps and websites
-- [x] Shield mode (no way to bypass)
+- Linux 5.7+ with `lsm=bpf` enabled in the kernel boot parameters
+- Debian, Ubuntu, Fedora, Arch, etc.
 
 ## 📦 Installation
 
 ```bash
-npm i -g ulysse
+curl -sL https://getulysse.github.io/install.sh | sh
 ```
 
 ## 📖 Usage
 
 ```txt
-Usage: ulysse [options] [command]
-
 A simple CLI tool for blocking your distracting apps and websites.
 
-Options:
-  -v, --version   Show the version and exit
-  -h, --help      Show this help message and exit
+Usage: ulysse <COMMAND>
 
 Commands:
-  daemon          Start the Ulysse daemon
-  blocklist       Manage the blocklist
-  whitelist       Manage the whitelist
-  shield          Enable or disable the shield mode
-  help [command]  display help for command
+  block      Block all apps and websites
+  unlock     Unlock the block
+  whitelist  Manage the whitelist (add/remove apps and domains)
+  status     Show the current block status and whitelist
+  help       Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
 
 Examples:
-  ulysse daemon start
-  ulysse blocklist add --app firefox
-  ulysse whitelist add --website wikipedia.org
-  ulysse blocklist add --website youtube.com -t 8h-20h
-  ulysse shield enable
+  ulysse whitelist add spotify                  # Allow a specific app
+  ulysse whitelist add wikipedia.org            # Allow a specific domain
+  ulysse whitelist remove spotify               # Remove an app from the whitelist
+  ulysse whitelist list                         # List the current whitelist
+
+  ulysse block                                  # Block all apps and websites
+  ulysse block --duration 2h                    # Block everything for 2 hours
+  ulysse block --duration 8h-20h                # Block every day from 8am to 8pm
+  ulysse block --space writing                  # Start a session with a workspace
 ```
 
 ## 🎁 Support me
 
-Please support me with a one-time or a monthly donation and help me continue my activities.
+Please support me with a one-time or monthly donation to help me continue my work.
 
-[![Github sponsor](https://img.shields.io/badge/github-Support%20my%20work-lightgrey?style=social&logo=github)](https://github.com/sponsors/johackim/)
-[![ko-fi](https://img.shields.io/badge/ko--fi-Support%20my%20work-lightgrey?style=social&logo=ko-fi)](https://ko-fi.com/johackim)
-[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support%20my%20work-lightgrey?style=social&logo=buy%20me%20a%20coffee&logoColor=%23FFDD00)](https://www.buymeacoffee.com/johackim)
-[![liberapay](https://img.shields.io/badge/liberapay-Support%20my%20work-lightgrey?style=social&logo=liberapay&logoColor=%23F6C915)](https://liberapay.com/johackim/donate)
-[![Github](https://img.shields.io/github/followers/johackim?label=Follow%20me&style=social)](https://github.com/johackim)
-[![Mastodon](https://img.shields.io/mastodon/follow/1631?domain=https%3A%2F%2Fmastodon.ethibox.fr&style=social)](https://mastodon.ethibox.fr/@johackim)
-[![Twitter](https://img.shields.io/twitter/follow/_johackim?style=social)](https://twitter.com/_johackim)
+[![Github sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors)](https://github.com/sponsors/johackim/)
 
 ## 📜 License
 
-This project is licensed under the GNU GPL v3.0 - see the [LICENSE.txt](https://raw.githubusercontent.com/johackim/ulysse/master/LICENSE.txt) file for details
+This project is licensed under the GNU GPL v3.0 - see the [LICENSE.txt](https://raw.githubusercontent.com/getulysse/ulysse/master/LICENSE.txt) file for details.
 
 **Free Software, Hell Yeah!**
